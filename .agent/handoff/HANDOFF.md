@@ -1,26 +1,23 @@
-# HANDOFF - 2026-09-03 15:30
+# HANDOFF - 2026-09-03 17:00
 
 ## 使用ツール
-Claude Code（Opus 5）／レビュー：Gemini CLI，Codex CLI（gpt-5.6-sol）／動作確認：claude-in-chrome
+Claude Code（Fable 5.1）＋ claude-in-chrome
 
 ## 現在のタスクと進捗
-- [x] M0 立ち上げ・構造解析・SPEC v1.0
-- [x] M1 理解検証用縦切り：実装完了・Chrome で全行程確認・GitHub push・Pages 有効化（https://sayonari.github.io/dogra-magra-game/）
-- [x] Nano Banana 試作3枚を背景に組込み（`assets/scripts/gen_image.py`，台帳 `assets/LEDGER.csv`，原本 `assets/generated/` は git/Drive 管理外）
-- [ ] M1 残り：CREDITS.md／初見者テスト（合格判定）
-- [ ] M2 着手前：Codex/Gemini に M1 のプレイ体験レビュー（`.output/2026-09-03_M1動作確認.html` と `src/data/scenario_m1.ts` を渡す）
+- [x] M1 縦切り完成・GitHub Pages 公開（https://sayonari.github.io/dogra-magra-game/）
+- [x] Nano Banana 試作3枚（room7/lab/clock）組込み
+- [x] ユーザー指摘2件を修正・公開済み：理解課題のやり直しで詰まる（once リスナー）／背景画像が見えない（場面導入＋半透明紙＋景ボタン）
+- [ ] CREDITS.md，Nano Banana 追加場面（漢数字指定・no brand text）と Pro 比較，Codex/Gemini による M1 体験レビュー，初見者テスト，M2 設計
 
 ## 試したこと・結果
-- `src/engine/reader.ts`：flow を clip 用 `.view` に入れ，可視判定を offset ベースに変更（KNOWLEDGE.md 参照）
-- 本文 JSON は遅延 glob で区分ごとチャンク化．初期ロードは S01/S02/S03/S04/S07 のみ
-- `docs/` は `GH_PAGES=1 npm run build` で生成（base `/dogra-magra-game/`）．ローカル確認は `npm run dev`
+- taskPanel：判定を常設ハンドラ化，誤答後は選び直して再判定．全問正解で「つづける」（res true），誤答のままでも「解説を読んで，このまま進む」（res false，バッジ未取得）
+- 背景：`.stage.intro` で 2.6 秒は紙を opacity 0（クリック／任意キーで短縮），`.paper` は rgba(239,230,211,.86)＋blur(2px)，HUD「景」ボタン／B キーで `.stage.peek`
+- Chrome で確認：導入→本文，景トグル，4/5→再判定→5/5→つづける→tasks に m1 記録
 
 ## 次のセッションで最初にやること
-1. Pages の公開状態を確認（`gh api repos/sayonari/dogra-magra-game/pages --jq .status` が built なら URL を開く）
-2. 画像の追加生成は `python3 assets/scripts/gen_image.py <id> gemini-3.1-flash-image 16:9 "<prompt>"` → `sips` で jpg 化して `public/img/real/<bg>.jpg`（Pro は `gemini-3-pro-image`）
-3. M1 のレビュー（Codex/Gemini）→ 指摘反映 → M2（全13区分の場面スクリプト）設計へ
+1. ユーザーの再プレイ感想を確認（紙の透過度が薄すぎ／濃すぎなら設定項目化を検討）
+2. CREDITS.md と Nano Banana 追加場面
 
 ## 注意点・ブロッカー
-- ゲーム内引用は原文 JSON 経由のみ．`scenario_m1.ts` の要旨・注釈は注釈者の言葉として書き，作中の主張と区別している（公開前に外部レビュー）
-- 交換局ミニゲームの引用文（「股を抓ねれば股だけが痛いのですよ」等）は S07 行1063–1108 と一致確認済み．変更時は再照合
-- `confirm()` を使う「はじめから」は Chrome 自動化を止める
+- API キー：`~/.config/dogra/gemini_api_key`．`assets/generated/` は git/Drive 同期外
+- 公開は `GH_PAGES=1 npm run build` → docs/ を push

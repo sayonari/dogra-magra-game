@@ -75,6 +75,7 @@ em.bouten{font-style:normal;text-emphasis:filled sesame var(--ink);-webkit-text-
 .tcy{text-combine-upright:all}
 .pgnav{display:flex;justify-content:space-between;align-items:center;padding:0 22px 14px;color:#c9b995;font-size:12px;z-index:3}
 .pgnav .pg{letter-spacing:.15em}
+body[data-mode=v] .pgnav{flex-direction:row-reverse}
 .pgnav button{background:rgba(0,0,0,.55);color:#e8dcc4;border:1px solid #6b5a45;padding:6px 18px;font-size:13px;border-radius:2px;letter-spacing:.15em}
 .pgnav button.next{border-color:#a67c2e}
 .pgnav button:disabled{opacity:.3}

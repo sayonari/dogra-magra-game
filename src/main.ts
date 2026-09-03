@@ -70,7 +70,10 @@ function goto(i: number) {
   const prevB = app.querySelector('#prev') as HTMLButtonElement, nextB = app.querySelector('#next') as HTMLButtonElement;
   reader = new Reader(paper, { depth: sc.depth, onPage: (lines, p, total) => {
     sc.blocks.forEach(b => markRead(progress, b.section, lines.filter(l => l >= b.from && l <= b.to))); saveProgress(progress);
-    pg.textContent = `${p + 1} / ${total}`; prevB.disabled = p === 0; nextB.textContent = p >= total - 1 ? (i === scenes.length - 1 ? '結末へ →' : '次の場面へ →') : '次の頁 →';
+    pg.textContent = `${p + 1} / ${total}`; prevB.disabled = p === 0;
+    // 縦書きは左へ進むので，次＝左側「←」，前＝右側「→」に置く（CSS の row-reverse と対）
+    const V = settings.mode === 'v'; const nx = p >= total - 1 ? (i === scenes.length - 1 ? '結末へ' : '次の場面へ') : '次の頁';
+    nextB.textContent = V ? `← ${nx}` : `${nx} →`; prevB.textContent = V ? '前の頁 →' : '← 前の頁';
     hint.textContent = settings.mode === 'v' ? '←キー／画面左で進む' : '↓キー／Space で進む';
   } });
   reader.set(paras(sc), sc.blocks[0].heading);

@@ -1,0 +1,17 @@
+<!doctype html><html lang="ja"><meta charset="utf-8"><title>修正報告：背景表示と理解課題のやり直し</title>
+<style>body{font-family:"Hiragino Mincho ProN",serif;max-width:900px;margin:40px auto;line-height:1.8;color:#222}h1{font-size:22px;border-bottom:2px solid #8a6d3b}h2{font-size:18px;margin-top:28px}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:6px 10px;vertical-align:top}th{background:#f3ede0}code{background:#f4f4f4;padding:1px 4px}.ok{color:#2a6}</style>
+<h1>修正報告：背景画像の表示と理解課題のやり直し（2026-09-03）</h1>
+<p>公開済み：<a href="https://sayonari.github.io/dogra-magra-game/">https://sayonari.github.io/dogra-magra-game/</a>（反映まで数分かかることがあります）</p>
+<h2>1．理解課題で「やり直しから出られない」</h2>
+<table><tr><th>原因</th><td>判定ボタンの処理を一度きり（once）で登録していたため，誤答後の「もう一度」で処理が消え，以後「判定する」を押しても何も起きなかった．ご指摘どおりクリア不能でした．</td></tr>
+<tr><th>修正後の流れ</th><td>①5問すべて選ぶ→「判定する」 ②誤答には「× 正しくは…」と解説，正答には「○」 ③誤答の選択肢を選び直す→「選び直して再判定」（何度でも） ④全問正解で「すべて割り当てられた——つづける」→次へ（論点版バッジ獲得）</td></tr>
+<tr><th>逃げ道</th><td>誤答があっても「解説を読んで，このまま進む（論点版バッジは未取得）」で先へ進めます．</td></tr>
+<tr><th>確認</th><td class="ok">Chrome で 4/5 → 選び直し → 5/5 → つづける → 課題達成記録（tasks: m1）→ 結末演出，を確認済み</td></tr></table>
+<h2>2．背景画像が見えない</h2>
+<table><tr><th>場面導入</th><td>場面に入ると約2.6秒，背景と場面名・情報源だけを表示し，そのあと本文の紙がフェードイン．クリックか任意のキーで即座に本文へ．</td></tr>
+<tr><th>紙の半透明化</th><td>本文の紙を不透明度 86％＋背景を軽くぼかす方式にし，読みやすさを保ちつつ「向こうに部屋がある」ことが分かるようにしました．</td></tr>
+<tr><th>景ボタン／Bキー</th><td>右上の「景」ボタン（または B キー）で本文を隠して背景だけを眺められます．もう一度押すと戻ります．</td></tr>
+<tr><th>調整の余地</th><td>透過度が「薄い／濃い」と感じられたら，設定パネルに不透明度の項目を追加します．</td></tr></table>
+<h2>変更ファイル</h2>
+<p><code>src/engine/ui.ts</code>（taskPanel），<code>src/main.ts</code>（導入・景ボタン・キー），<code>src/styles.css</code>（intro/peek/caption/半透明紙）．記録は <code>.spec/TODO.md</code>・<code>.spec/KNOWLEDGE.md</code>・<code>.agent/handoff/HANDOFF.md</code> を更新，Drive 同期済み．</p>
+</html>
