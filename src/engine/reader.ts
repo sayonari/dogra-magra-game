@@ -25,12 +25,12 @@ export class Reader {
     const headSpace = this.heading ? (this.vertical() ? this.heading.offsetWidth + fs : this.heading.offsetHeight + fs * .5) : 0;
     if (this.vertical()) {
       const avail = this.root.clientWidth - fs * 1.2 - headSpace; this.pageSize = Math.max(pitch, Math.floor(avail / pitch) * pitch);
-      Object.assign(this.view.style, { top: `${fs * .7}px`, bottom: `${fs * .7}px`, right: `${fs * .6 + headSpace}px`, left: '0' });
+      Object.assign(this.view.style, { top: `${fs * .7}px`, bottom: `${fs * .7}px`, right: `${fs * .6 + headSpace}px`, left: 'auto', width: `${this.pageSize}px`, height: 'auto' }); // 幅を頁幅ぴったりにし，次頁の列が端に覗かないようにする
       this.flow.style.height = '100%'; this.flow.style.top = '0'; this.flow.style.right = '0'; this.flow.style.left = 'auto'; this.flow.style.width = 'max-content';
       const totalW = this.flow.scrollWidth; this.total = Math.max(1, Math.ceil(totalW / this.pageSize));
     } else {
       const avail = this.root.clientHeight - fs * 1.2 - headSpace; this.pageSize = Math.max(pitch, Math.floor(avail / pitch) * pitch);
-      Object.assign(this.view.style, { top: `${fs * .6 + headSpace}px`, bottom: `${fs * .6}px`, left: `${fs * 1.5}px`, right: `${fs * 1.5}px` });
+      Object.assign(this.view.style, { top: `${fs * .6 + headSpace}px`, bottom: 'auto', height: `${this.pageSize}px`, left: `${fs * 1.5}px`, right: `${fs * 1.5}px`, width: 'auto' });
       this.flow.style.width = '100%'; this.flow.style.left = '0'; this.flow.style.top = '0'; this.flow.style.right = 'auto'; this.flow.style.height = 'max-content';
       const totalH = this.flow.scrollHeight; this.total = Math.max(1, Math.ceil(totalH / this.pageSize));
     }

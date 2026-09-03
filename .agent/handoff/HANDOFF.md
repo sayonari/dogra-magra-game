@@ -1,23 +1,26 @@
-# HANDOFF - 2026-09-03 17:00
+# HANDOFF - 2026-09-03 14:40
 
 ## 使用ツール
-Claude Code（Fable 5.1）＋ claude-in-chrome
+Claude Code（Fable 5.1）＋ claude-in-chrome＋並列サブエージェント（章データ執筆 8 本）＋ Codex（gpt-5.6-sol，エンジン監査）
 
 ## 現在のタスクと進捗
-- [x] M1 縦切り完成・GitHub Pages 公開（https://sayonari.github.io/dogra-magra-game/）
-- [x] Nano Banana 試作3枚（room7/lab/clock）組込み
-- [x] ユーザー指摘2件を修正・公開済み：理解課題のやり直しで詰まる（once リスナー）／背景画像が見えない（場面導入＋半透明紙＋景ボタン）
-- [ ] CREDITS.md，Nano Banana 追加場面（漢数字指定・no brand text）と Pro 比較，Codex/Gemini による M1 体験レビュー，初見者テスト，M2 設計
+- [x] **M2 全章通し版 完成・公開**（https://sayonari.github.io/dogra-magra-game/ ，commit 22f159c）：14 章ファイル・69 場面・カード 47・課題 13・用語／人物／文書・命題台帳・原文全文モード・3 バッジ・索引再読・終幕
+- [x] Codex エンジン監査 14 件中 12 件反映（`analysis/reviews/codex_review_m2_engine.md`）．未対応：保存失敗通知，課題の radio 化
+- [x] 背景 10 枚生成・組込み，CREDITS.md，STYLE.md 追記
+- [ ] 章データの出典ファクトチェック（Codex/Gemini → 西村確認），エージェント報告の要検討点（TODO 参照），初見者テスト
+- [ ] M3（人物・物品画像，BGM），M4（ミニゲーム実装：saimon/whoismad/totsuki/emaki/assistant/trial は stub 表示）
 
 ## 試したこと・結果
-- taskPanel：判定を常設ハンドラ化，誤答後は選び直して再判定．全問正解で「つづける」（res true），誤答のままでも「解説を読んで，このまま進む」（res false，バッジ未取得）
-- 背景：`.stage.intro` で 2.6 秒は紙を opacity 0（クリック／任意キーで短縮），`.paper` は rgba(239,230,211,.86)＋blur(2px)，HUD「景」ボタン／B キーで `.stage.peek`
-- Chrome で確認：導入→本文，景トグル，4/5→再判定→5/5→つづける→tasks に m1 記録
+- Chrome 自動操作で S02→終章まで通し：全場面到達，物語版バッジ達成，周回 1，終幕後に索引が開く．例外なし
+- つづきから：場面＋頁を復元（`progress.page`）．要旨・注釈タブでは頁送りキー無効．Escape で設定／図鑑／索引／全文を閉じる
+- 原文全文モードで S05 を 26 頁送って閲覧 68%（同期報告に変えてから正しく増える）
 
 ## 次のセッションで最初にやること
-1. ユーザーの再プレイ感想を確認（紙の透過度が薄すぎ／濃すぎなら設定項目化を検討）
-2. CREDITS.md と Nano Banana 追加場面
+1. ユーザーの通しプレイ感想を聞く（章導入・課題の難度・stub ゲームの要旨表示で十分か）
+2. ファクトチェック：`src/data/chapters/*.ts` の notes/terms/claims を Codex・Gemini に検証させ，指摘を `analysis/reviews/` に保存
+3. `.spec/TODO.md` 優先度高の「要検討点」を処理（S13 課題順序，S11 境界，S09 desc）
 
 ## 注意点・ブロッカー
 - API キー：`~/.config/dogra/gemini_api_key`．`assets/generated/` は git/Drive 同期外
-- 公開は `GH_PAGES=1 npm run build` → docs/ を push
+- 公開は `GH_PAGES=1 npm run build` → docs/ を push．検証は `npx tsc --noEmit -p .` と `python3 analysis/verify_scenario.py src/data/chapters/*.ts`
+- Chrome 自動テストはタブを前面に（背景では rAF 停止）．`confirm()` を出す「はじめから」は押さず「つづきから」／索引から入る

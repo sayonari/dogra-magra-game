@@ -1,0 +1,50 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>ドグラ・マグラ ゲーム化 — M2 全章通し版 完成報告（2026-09-03）</title>
+<style>body{font-family:"Hiragino Mincho ProN","Noto Serif JP",serif;max-width:980px;margin:2em auto;padding:0 1.5em;line-height:1.8;color:#241c17;background:#f6f1e6}h1{color:#8b1e2d;border-bottom:2px solid #8b1e2d}h2{color:#2f5d62;margin-top:1.6em}table{border-collapse:collapse;width:100%;font-size:.95em}th,td{border:1px solid #c9b99a;padding:.35em .6em;vertical-align:top}th{background:#e4d8c0}code{background:#eee4d0;padding:0 .3em}img{max-width:100%;border:1px solid #c9b99a;margin:.4em 0}.warn{background:#fff3d6;border-left:4px solid #a67c2e;padding:.5em 1em}ul{padding-left:1.4em}</style></head><body>
+<h1>M2 全章通し版 完成報告</h1>
+<p>公開先：<a href="https://sayonari.github.io/dogra-magra-game/">https://sayonari.github.io/dogra-magra-game/</a>（commit 22f159c 以降）．ご指示「良いと思います．なので開発を進めてください！」に基づき，M2（全13区分の通しプレイ）を完成させました．</p>
+
+<h2>1. できたもの</h2>
+<table><tr><th>項目</th><th>内容</th></tr>
+<tr><td>章データ</td><td>14 ファイル（S01〜S13，S11 は前半・後半）／69 場面．各場面に原文抜粋（行範囲指定）・要旨・三時点注釈（大正15年作中／昭和10年刊行／現代）・情報源（種別・誰・信頼度★）</td></tr>
+<tr><td>証拠カード</td><td>47 枚（作中の主張と現代医学の注記を分離）</td></tr>
+<tr><td>理解課題</td><td>13 章分（各4〜6問）．全問正解で「つづける」，誤答のままでも「解説を読んで進む」逃げ道あり．<b>選択肢は表示のたびにシャッフル</b>（終章の正解がすべて先頭だったため）</td></tr>
+<tr><td>記憶図鑑</td><td>証拠カード／用語／人物・文書／<b>命題台帳</b>（誰の言葉か・信頼度・支持・反証・出典行，全 67 命題）</td></tr>
+<tr><td>原文全文モード</td><td>索引または「全文」ボタンから区分の原文を最初から頁送りで読める．閲覧行は「原文100%」バッジに反映</td></tr>
+<tr><td>3 バッジ</td><td>物語版（全場面到達）／論点版（全13課題達成）／原文100%（非空 2,959 行の閲覧率）＋周回数</td></tr>
+<tr><td>作中文書の入れ子</td><td>階層インジケータ（入れ子 1・2）と紙の段積み影，文書種別ごとの紙（新聞・手紙・絵巻）</td></tr>
+<tr><td>ミニゲーム</td><td>電話交換局（S07）は実装済み．外道祭文／狂人当て／十月十日／絵巻物／助手モード／対審は<b>要旨表示の代替パネル</b>（M4 で実装）．終章は三説の選択→時計音→タイトル</td></tr>
+<tr><td>背景</td><td>Nano Banana で 10 枚追加生成（廊下・解放治療場・街角・教授室・古紙・絵巻・新聞・手紙・夜の海・病院外観）</td></tr>
+</table>
+
+<h2>2. 検証</h2>
+<ul>
+<li><b>原文照合</b>：<code>analysis/verify_scenario.py</code> で全 14 ファイル OK（引用は原文と一字一句一致，行範囲・正解番号・引用外の「、。」もゼロ）．型検査も通過</li>
+<li><b>通しプレイ</b>：Chrome 自動操作で第1章から終章まで全 69 場面に到達．物語版バッジ達成・周回 1・終幕後に索引が開くことを確認．例外なし</li>
+<li><b>つづきから</b>：場面だけでなく頁位置も復元．要旨・注釈タブ表示中は頁送りキーが効かない（意図せず場面が終わらない）</li>
+</ul>
+
+<h2>3. Codex（gpt-5.6-sol）によるエンジン監査</h2>
+<p>14 件の指摘のうち 12 件を反映しました（<code>analysis/reviews/codex_review_m2_engine.md</code>）．主なもの：場面遷移の await 漏れ（連打で二重イベント）／要旨タブでのキー暴発／保存値の実行時検証（壊れた localStorage でも起動）／ResizeObserver の解放／ダイアログの role・Escape・フォーカス復帰／終幕後タイマーの管理．未対応 2 件（保存失敗の通知，課題のラジオボタン化）は TODO に残しました．</p>
+
+<h2>4. 執筆エージェントからの「要検討点」（ご判断をいただきたい点）</h2>
+<div class="warn"><ul>
+<li><b>終章の理解課題</b>：q5・q6 が次の場面（七号室・時計音）の内容を先取りして問う形．順序を変えるか，S13-3 へ移すか</li>
+<li><b>S11 のサブ区分境界</b>：前半・後半の担当がそれぞれ「sections.json の境界は内容と合わない」と修正案を出しています（例：S11-07「足音——モヨ子？」にモヨ子は登場しない）</li>
+<li><b>S09 の区分説明</b>：sections.json の desc に「呉青秀・絵巻物の由来」とあるが，実際の初出は S11．章データは原文に合わせて書いてあります</li>
+<li><b>現代注の医学的記述</b>（S05 精神病者監護法，S11a 催眠殺人の知見，解放処遇など）は次の外部ファクトチェックの対象にします</li>
+</ul></div>
+
+<h2>5. 画面</h2>
+<p>絵巻物の場面（S11a-5，絵巻の紙）：</p><img src="screenshots/m2_scene_S11a-5_scroll.jpg" alt="絵巻物の場面">
+<p>記憶図鑑・命題台帳：</p><img src="screenshots/m2_codex_claims.jpg" alt="命題台帳">
+<p>生成した背景 10 枚：</p><img src="screenshots/m2_backgrounds.jpg" alt="背景一覧">
+
+<h2>6. 次にやること（提案）</h2>
+<ol>
+<li>先生ご自身の通しプレイと感想（章導入・課題の難度・代替パネルで十分か）</li>
+<li>章データの出典ファクトチェック（Codex／Gemini → 西村確認）</li>
+<li>上記 4 の要検討点の処理 → 初見者テスト</li>
+<li>M3（人物・物品画像，BGM）／M4（ミニゲーム 6 種の実装）</li>
+</ol>
+<p style="color:#666;font-size:.9em">記録：<code>.spec/TODO.md</code>，<code>.spec/KNOWLEDGE.md</code>，<code>.agent/handoff/HANDOFF.md</code> を更新．Drive 正本へ同期済み．</p>
+</body></html>

@@ -35,3 +35,11 @@
 - `addEventListener(…,{once:true})` でボタン処理を書き，やり直し時に `onclick=null` へ戻すと二度と発火しない．判定は常設ハンドラ（状態は attempts/picks で管理）にする．「詰まって先に進めない」UI は必ず逃げ道（このまま進む）を用意する
 - 背景画像は，非透過の紙だと存在に気づかれない．場面導入で背景だけ数秒見せる（クリック／キーで短縮）＋紙を rgba .86＋backdrop-filter blur で「向こうに何かある」感を出す＋任意で隠せる「景」ボタンが有効
 - 縦書きは左へ進むので，画面上のボタン配置も「次＝左／前＝右」にしないと読者の手が迷う（`body[data-mode=v] .pgnav{flex-direction:row-reverse}`＋ラベルの矢印も反転）
+
+## 2026-09-03 M2（全章通し）の知見
+- **章データの並列執筆**：`src/data/chapters/S*.ts` を 1 区分 1 エージェントで並列執筆（S11 は前後半）．`.spec/AUTHORING.md`（形式・引用は `<q>` で囲む・「、。」禁止・場面 3〜7・game と task は別場面）と `analysis/verify_scenario.py`（原文照合・行範囲・answer 範囲・引用外「、。」）を渡すと，8 エージェント全員が自力で OK まで修正できた．所要 10〜17 分／章
+- `scenario.ts` は `import.meta.glob('./chapters/S*.ts', {eager:true})` を id 順に集約するので，ファイルを置くだけで章が増える（登録不要）．S11a/S11b は section を共に 'S11' にし，原文100% の分母は counts.json の区分単位
+- **背景タブでは requestAnimationFrame が止まる**．頁の可視行報告を rAF 経由にしていたため，Chrome 自動操作中に閲覧記録が漏れた（原文100% が 0.6%）→ 同期報告に変更．自動テストでは「タブが前面か」を疑う
+- **理解課題の正解位置の偏り**：執筆エージェントは answer を 0 に置きがち（S13 は全問 0）．データを直すより表示時シャッフル（data-i は元添字）が確実
+- Chrome 自動操作の通しプレイ用スクリプト：オーバーレイ内のボタンを優先順（booknote → #ex-next → #ex-skip → .choice .opt → #skip → #go → judge）で押し，場面名の変化をログに取る．`#ex-skip` は押した後 hidden になるので `offsetParent` で可視判定しないと無限ループする
+- Nano Banana は「near-black frame」のような抽象指定を無視して具象（病院外観）を出すことがある．黒画面は CSS で作る．「no numerals, no signage, no brand marks, no people」を接頭辞に入れると文字・人物の混入がほぼ消えた
