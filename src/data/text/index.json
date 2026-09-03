@@ -1,0 +1,97 @@
+{
+ "source": "青空文庫 No.2093（底本：ちくま文庫『夢野久作全集9』）",
+ "generated_by": "analysis/aozora2json.py",
+ "sections": [
+  {
+   "id": "S01",
+   "title": "巻頭歌",
+   "kind": "prologue",
+   "paragraphs": 7,
+   "chars": 29
+  },
+  {
+   "id": "S02",
+   "title": "覚醒——ブウウ——ンンン",
+   "kind": "narrative",
+   "paragraphs": 142,
+   "chars": 12218
+  },
+  {
+   "id": "S03",
+   "title": "若林博士の来訪",
+   "kind": "narrative",
+   "paragraphs": 240,
+   "chars": 32498
+  },
+  {
+   "id": "S04",
+   "title": "標本室の見学",
+   "kind": "narrative",
+   "paragraphs": 268,
+   "chars": 36768
+  },
+  {
+   "id": "S05",
+   "title": "キチガイ地獄外道祭文",
+   "kind": "embedded_doc",
+   "paragraphs": 97,
+   "chars": 21573
+  },
+  {
+   "id": "S06",
+   "title": "地球表面は狂人の一大解放治療場",
+   "kind": "embedded_doc",
+   "paragraphs": 22,
+   "chars": 3890
+  },
+  {
+   "id": "S07",
+   "title": "絶対探偵小説　脳髄は物を考える処に非ず",
+   "kind": "embedded_doc",
+   "paragraphs": 288,
+   "chars": 29711
+  },
+  {
+   "id": "S08",
+   "title": "胎児の夢",
+   "kind": "embedded_doc",
+   "paragraphs": 83,
+   "chars": 19499
+  },
+  {
+   "id": "S09",
+   "title": "空前絶後の遺言書",
+   "kind": "embedded_doc",
+   "paragraphs": 305,
+   "chars": 56995
+  },
+  {
+   "id": "S10",
+   "title": "心理遺伝論附録・その一　呉一郎の発作顛末",
+   "kind": "embedded_doc",
+   "paragraphs": 352,
+   "chars": 69146
+  },
+  {
+   "id": "S11",
+   "title": "正木博士との対面",
+   "kind": "narrative",
+   "paragraphs": 1040,
+   "chars": 129618
+  },
+  {
+   "id": "S12",
+   "title": "新聞記事——正木博士投身自殺す",
+   "kind": "embedded_doc",
+   "paragraphs": 21,
+   "chars": 3211
+  },
+  {
+   "id": "S13",
+   "title": "結末——懐中時計とブウウン",
+   "kind": "narrative",
+   "paragraphs": 95,
+   "chars": 7135
+  }
+ ]
+}
