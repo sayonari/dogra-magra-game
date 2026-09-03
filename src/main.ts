@@ -50,7 +50,7 @@ function goto(i: number) {
   cur = i; const sc = scenes[i]; tab = 'text';
   if (!progress.reached.includes(sc.id)) progress.reached.push(sc.id); progress.last = sc.id; saveProgress(progress);
   startAmbient();
-  app.innerHTML = `<div class="bg" style="background-image:url(${BASE}img/real/${sc.bg}.svg)"></div><div class="grain"></div>
+  app.innerHTML = `<div class="bg" style="background-image:url(${BASE}img/real/${sc.bg}.jpg),url(${BASE}img/real/${sc.bg}.svg)"></div><div class="grain"></div>
     <div class="stage">
       <div class="hud"><span class="scene">${sc.title}</span>
         <span class="chip src" title="${sc.source.note}">${kindLabel(sc.source.kind)}：${sc.source.who}　<span class="trust">${trustStars(sc.source.trust)}</span></span>

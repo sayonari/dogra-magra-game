@@ -18,3 +18,6 @@ dist-ssr
 assets/_raw/
 *.wav
 *.psd
+
+# 生成画像の原本（大容量）
+assets/generated/
