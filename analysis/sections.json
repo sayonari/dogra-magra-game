@@ -1,0 +1,136 @@
+{
+ "source": "青空文庫 No.2093 2093_ruby_28087",
+ "total_chars": 422606,
+ "sections": [
+  {
+   "id": "S01",
+   "title": "巻頭歌",
+   "desc": "胎児よ胎児よ何故躍る…（作品全体の鍵）",
+   "kind": "prologue",
+   "line_start": 1,
+   "line_end": 44,
+   "chars": 346,
+   "ratio": 0.1
+  },
+  {
+   "id": "S02",
+   "title": "覚醒——ブウウ——ンンン",
+   "desc": "七号室での目覚め．記憶喪失の「私」．六号室の少女の叫び",
+   "kind": "narrative",
+   "line_start": 45,
+   "line_end": 197,
+   "chars": 12218,
+   "ratio": 2.9
+  },
+  {
+   "id": "S03",
+   "title": "若林博士の来訪",
+   "desc": "法医学教授・若林鏡太郎との対話．解放治療場・正木博士の存在が語られる",
+   "kind": "narrative",
+   "line_start": 198,
+   "line_end": 454,
+   "chars": 32498,
+   "ratio": 7.7
+  },
+  {
+   "id": "S04",
+   "title": "標本室の見学",
+   "desc": "正木博士の遺物．胎児の模型，頭蓋骨，絵巻物…そして「ドグラ・マグラ」という原稿と巻頭歌（入れ子構造の核心）",
+   "kind": "narrative",
+   "line_start": 455,
+   "line_end": 742,
+   "chars": 36768,
+   "ratio": 8.7
+  },
+  {
+   "id": "S05",
+   "title": "キチガイ地獄外道祭文",
+   "desc": "正木博士＝面黒楼万児の阿呆陀羅経．精神病院批判を七五調・数え唄形式で",
+   "kind": "embedded_doc",
+   "line_start": 743,
+   "line_end": 888,
+   "chars": 21573,
+   "ratio": 5.1
+  },
+  {
+   "id": "S06",
+   "title": "地球表面は狂人の一大解放治療場",
+   "desc": "正木博士の講演／論文．「誰もが狂人」という視点の転倒",
+   "kind": "embedded_doc",
+   "line_start": 889,
+   "line_end": 919,
+   "chars": 3890,
+   "ratio": 0.9
+  },
+  {
+   "id": "S07",
+   "title": "絶対探偵小説　脳髄は物を考える処に非ず",
+   "desc": "正木博士の学位論文．脳髄＝電話交換局説．細胞に意識が宿る",
+   "kind": "embedded_doc",
+   "line_start": 920,
+   "line_end": 1254,
+   "chars": 29711,
+   "ratio": 7.0
+  },
+  {
+   "id": "S08",
+   "title": "胎児の夢",
+   "desc": "胎児は母胎内で先祖の歴史（進化・罪業）を夢として体験する，という理論",
+   "kind": "embedded_doc",
+   "line_start": 1255,
+   "line_end": 1364,
+   "chars": 19499,
+   "ratio": 4.6
+  },
+  {
+   "id": "S09",
+   "title": "空前絶後の遺言書",
+   "desc": "正木博士の遺言．心理遺伝論，呉家の由来，呉青秀と絵巻物，モヨ子・千世子・八代子，「私」の正体",
+   "kind": "embedded_doc",
+   "line_start": 1365,
+   "line_end": 1694,
+   "chars": 56995,
+   "ratio": 13.5
+  },
+  {
+   "id": "S10",
+   "title": "心理遺伝論附録・その一　呉一郎の発作顛末",
+   "desc": "呉一郎事件の記録．千世子殺害・モヨ子絞殺（未遂）の経緯と解放治療場での再現実験",
+   "kind": "embedded_doc",
+   "line_start": 1695,
+   "line_end": 2134,
+   "chars": 69146,
+   "ratio": 16.4
+  },
+  {
+   "id": "S11",
+   "title": "正木博士との対面",
+   "desc": "「読んでしまったか」．死んだはずの正木が現れ「私」と対話．若林との対立，実験の真相，「私」＝呉一郎？",
+   "kind": "narrative",
+   "line_start": 2135,
+   "line_end": 3235,
+   "chars": 129618,
+   "ratio": 30.7
+  },
+  {
+   "id": "S12",
+   "title": "新聞記事——正木博士投身自殺す",
+   "desc": "解放治療場の惨劇と正木の自殺を伝える号外群",
+   "kind": "embedded_doc",
+   "line_start": 3236,
+   "line_end": 3279,
+   "chars": 3209,
+   "ratio": 0.8
+  },
+  {
+   "id": "S13",
+   "title": "結末——懐中時計とブウウン",
+   "desc": "Ｍより Ｗ兄への走り書き，「私の父は正木」，六号室の呼び声，時計の唸り，「……アッ……呉青秀……」，冒頭へ回帰",
+   "kind": "narrative",
+   "line_start": 3280,
+   "line_end": 3401,
+   "chars": 7135,
+   "ratio": 1.7
+  }
+ ]
+}

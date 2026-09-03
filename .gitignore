@@ -1,0 +1,20 @@
+# Logs
+logs
+*.log
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+.env
+
+# 生成素材の生データ（大容量）は git 管理外．採用分は assets/ に整理して個別に add する
+assets/_raw/
+*.wav
+*.psd
