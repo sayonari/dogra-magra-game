@@ -1,4 +1,5 @@
 #!/bin/bash
+# 2026-09-03 西村方針：外部査読は codex（gpt-5.6-sol）のみ使う．gemini は指摘の質が低く不採用（AUTHORING.md「西村方針」）．gemini 引数は履歴互換のため残す
 # 使い方: analysis/factcheck.sh <codex|gemini> <章ファイル名(拡張子なし)>  例: analysis/factcheck.sh codex S05
 set -u
 cd "$(dirname "$0")/.."
