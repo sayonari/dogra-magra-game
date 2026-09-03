@@ -48,8 +48,13 @@ body[data-art="shadow"] .bg::after{background:radial-gradient(ellipse at center,
 .hud .icons button{background:rgba(0,0,0,.5);color:#d9cdb5;border:1px solid #6b5a45;padding:4px 10px;font-size:12px;border-radius:2px}
 .hud .icons button:hover{border-color:#c9a86a}
 
-.paperwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:6px 18px 10px;min-height:0;z-index:2}
-.paper{position:relative;background:var(--paper);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.7),inset 0 0 80px rgba(120,90,50,.25);border:1px solid #c9b995;
+.paperwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:6px 18px 10px;min-height:0;z-index:2;transition:opacity .9s}
+.stage.intro .paperwrap,.stage.intro .pgnav,.stage.peek .paperwrap,.stage.peek .pgnav{opacity:0;pointer-events:none}
+.caption{position:absolute;left:0;right:0;bottom:18%;text-align:center;color:#f0e6d2;font-size:clamp(20px,3vw,32px);letter-spacing:.3em;text-shadow:0 0 18px #000,0 2px 6px #000;z-index:4;pointer-events:none;opacity:0;transition:opacity .8s}
+.stage.intro .caption{opacity:1}
+.caption small{display:block;font-size:13px;letter-spacing:.2em;color:#c9b995;margin-top:10px}
+.hud .icons button.on{border-color:#c9a86a;background:rgba(166,124,46,.25)}
+.paper{position:relative;background:rgba(239,230,211,.86);backdrop-filter:blur(2px) sepia(.3);-webkit-backdrop-filter:blur(2px) sepia(.3);color:var(--ink);box-shadow:0 20px 60px rgba(0,0,0,.7),inset 0 0 80px rgba(120,90,50,.25);border:1px solid #c9b995;
   width:min(94vw,1180px);height:min(66vh,760px);overflow:hidden;font-size:var(--fs);line-height:var(--lh)}
 .paper .heading{position:absolute;z-index:2;font-weight:700;color:var(--red);letter-spacing:.2em;font-size:1.05em;line-height:1.5}
 body[data-mode="v"] .paper .heading{writing-mode:vertical-rl;top:1em;right:1em;height:calc(100% - 2em)}

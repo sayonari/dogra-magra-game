@@ -69,18 +69,25 @@ export function indexPanel(scenes: Scene[], p: Progress, taskId: string, pct: nu
 
 export function taskPanel(title: string, qs: TaskQ[]): Promise<boolean> {
   return new Promise(res => {
-    const o = overlay(`<h2>${title}</h2><p class="small">「正解を当てる」のではなく，「その言葉は誰のものか」を割り当てます．すべて割り当てると判定します．間違えても解説が出るだけです．</p>
+    const o = overlay(`<h2>${title}</h2><p class="small">「正解を当てる」のではなく，「その言葉は誰のものか」を割り当てます．すべて割り当てると判定できます．間違えても解説が出るだけで，選び直して何度でも判定できます．</p>
       <div class="task">${qs.map(q => `<div class="q" data-id="${q.id}"><div class="stmt">${q.stmt}</div><div class="opts">${q.opts.map((op, i) => `<button data-i="${i}">${op}</button>`).join('')}</div><div class="fb"></div></div>`).join('')}</div>
-      <div class="row"><button class="btn" id="judge" disabled>判定する</button><span class="small" id="cnt"></span></div>`);
-    const picks: Record<string, number> = {}; const judge = o.body.querySelector('#judge') as HTMLButtonElement; const cnt = o.body.querySelector('#cnt')!;
+      <div class="row"><button class="btn" id="judge" disabled>判定する</button><button class="btn" id="go" style="display:none">つづける</button><button class="btn sub" id="skip" style="display:none">解説を読んで，このまま進む（論点版バッジは未取得）</button><span class="small" id="cnt"></span></div>`);
+    const picks: Record<string, number> = {}; const judge = o.body.querySelector('#judge') as HTMLButtonElement; const go = o.body.querySelector('#go') as HTMLButtonElement; const skip = o.body.querySelector('#skip') as HTMLButtonElement; const cnt = o.body.querySelector('#cnt')!;
+    let attempts = 0;
     o.body.querySelectorAll('.q').forEach(q => q.querySelectorAll('.opts button').forEach(b => b.addEventListener('click', () => {
       q.querySelectorAll('.opts button').forEach(x => x.classList.toggle('sel', x === b)); picks[(q as HTMLElement).dataset.id!] = Number((b as HTMLElement).dataset.i);
-      const n = Object.keys(picks).length; cnt.textContent = `${n}/${qs.length}`; judge.disabled = n < qs.length;
+      q.classList.remove('ok', 'ng'); q.querySelector('.fb')!.textContent = '';
+      const n = Object.keys(picks).length; cnt.textContent = `${n}/${qs.length}`; judge.disabled = n < qs.length; judge.textContent = attempts ? '選び直して再判定' : '判定する';
     })));
     judge.addEventListener('click', () => {
-      let ok = 0; qs.forEach(q => { const el = o.body.querySelector(`.q[data-id="${q.id}"]`)!; const good = picks[q.id] === q.answer; if (good) ok++; el.classList.add(good ? 'ok' : 'ng'); el.querySelector('.fb')!.innerHTML = (good ? '○ ' : `× 正しくは「${q.opts[q.answer]}」．`) + q.fb; });
-      judge.textContent = ok === qs.length ? 'すべて割り当てられた——つづける' : `${ok}/${qs.length}．もう一度`; judge.onclick = () => { if (ok === qs.length) { o.close(); res(true); } else { o.body.querySelectorAll('.q').forEach(q => { q.classList.remove('ok', 'ng'); q.querySelector('.fb')!.textContent = ''; }); judge.textContent = '判定する'; judge.onclick = null; } };
-    }, { once: true });
+      attempts++; let ok = 0;
+      qs.forEach(q => { const el = o.body.querySelector(`.q[data-id="${q.id}"]`)!; const good = picks[q.id] === q.answer; if (good) ok++; el.classList.add(good ? 'ok' : 'ng'); el.querySelector('.fb')!.innerHTML = (good ? '○ ' : `× 正しくは「${q.opts[q.answer]}」．`) + q.fb; });
+      cnt.textContent = `${ok}/${qs.length} 正解`;
+      if (ok === qs.length) { judge.style.display = 'none'; skip.style.display = 'none'; go.style.display = ''; go.textContent = 'すべて割り当てられた——つづける'; }
+      else { judge.textContent = '選び直して再判定'; skip.style.display = ''; }
+    });
+    go.addEventListener('click', () => { o.close(); res(true); });
+    skip.addEventListener('click', () => { o.close(); res(false); });
   });
 }
 

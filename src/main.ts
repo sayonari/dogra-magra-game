@@ -56,10 +56,16 @@ function goto(i: number) {
         <span class="chip src" title="${sc.source.note}">${kindLabel(sc.source.kind)}：${sc.source.who}　<span class="trust">${trustStars(sc.source.trust)}</span></span>
         ${sc.depth ? '<span class="chip">作中文書（入れ子 1）</span>' : ''}
         <div class="tabs"><button data-t="text" class="on">原文</button><button data-t="summary">要旨</button><button data-t="notes">注釈</button></div>
-        <div class="icons"><button id="b-cards">図鑑 ${progress.cards.length}</button><button id="b-index">索引</button><button id="b-set">設定</button><button id="b-title">題</button></div></div>
+        <div class="icons"><button id="b-peek" title="本文を隠して背景を見る（Bキー）">景</button><button id="b-cards">図鑑 ${progress.cards.length}</button><button id="b-index">索引</button><button id="b-set">設定</button><button id="b-title">題</button></div></div>
+      <div class="caption">${sc.title}<small>${kindLabel(sc.source.kind)}：${sc.source.who}</small></div>
       <div class="paperwrap"><div class="paper" id="paper"></div></div>
       <div class="pgnav"><button id="prev">← 前の頁</button><span class="pg" id="pg"></span><span class="hint" id="hint"></span><button id="next" class="next">次の頁 →</button></div>
     </div>`;
+  // 場面導入：背景と題だけを数秒見せてから本文の紙を出す（クリック／キーで短縮）
+  const stage = app.querySelector('.stage') as HTMLElement; stage.classList.add('intro');
+  const endIntro = () => { stage.classList.remove('intro'); clearTimeout(introT); };
+  const introT = setTimeout(endIntro, 2600); stage.addEventListener('click', endIntro, { once: true });
+  const peek = app.querySelector('#b-peek') as HTMLButtonElement; peek.addEventListener('click', e => { e.stopPropagation(); endIntro(); stage.classList.toggle('peek'); peek.classList.toggle('on'); });
   const paper = app.querySelector('#paper') as HTMLElement; const pg = app.querySelector('#pg')!; const hint = app.querySelector('#hint')!;
   const prevB = app.querySelector('#prev') as HTMLButtonElement, nextB = app.querySelector('#next') as HTMLButtonElement;
   reader = new Reader(paper, { depth: sc.depth, onPage: (lines, p, total) => {
@@ -110,6 +116,9 @@ const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 document.addEventListener('keydown', e => {
   if (cur < 0 || document.querySelector('.overlay,.ending')) return;
+  const stage = document.querySelector('.stage'); if (stage?.classList.contains('intro')) { stage.classList.remove('intro'); return; }
+  if (e.key === 'b' || e.key === 'B') { (document.getElementById('b-peek') as HTMLButtonElement)?.click(); return; }
+  if (stage?.classList.contains('peek')) { (document.getElementById('b-peek') as HTMLButtonElement)?.click(); return; }
   const v = settings.mode === 'v'; const fwd = v ? (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'ArrowDown') : (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown');
   const back = v ? (e.key === 'ArrowRight' || e.key === 'ArrowUp') : (e.key === 'ArrowLeft' || e.key === 'ArrowUp');
   if (fwd) { e.preventDefault(); advance(); } else if (back) { e.preventDefault(); if (reader?.prev()) pageSound(scenes[cur].depth); }
