@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="ja"><head><meta charset="utf-8"><title>ドグラ・マグラ ゲーム化 — M1 動作確認（2026-09-03）</title>
+<style>body{font-family:"Hiragino Mincho ProN","Noto Serif JP",serif;max-width:980px;margin:30px auto;padding:0 20px;line-height:1.8;color:#241c17;background:#f7f2e8}h1{font-size:22px;border-bottom:2px solid #8b1e2d;padding-bottom:6px}h2{font-size:17px;color:#8b1e2d;margin-top:28px}table{border-collapse:collapse;width:100%;font-size:14px}td,th{border:1px solid #c9b995;padding:6px 10px;text-align:left;vertical-align:top}th{background:#efe6d3}code{background:#eee4cf;padding:1px 5px;font-size:13px}img{max-width:100%;border:1px solid #c9b995;box-shadow:0 6px 20px rgba(0,0,0,.2)}.ok{color:#2f5d62;font-weight:700}.todo{color:#8b1e2d}</style></head><body>
+<h1>M1（理解検証用縦切り）動作確認</h1>
+<p>公開 URL：<a href="https://sayonari.github.io/dogra-magra-game/">https://sayonari.github.io/dogra-magra-game/</a>（GitHub Pages，反映まで数分）／ローカル：<code>npm run dev</code></p>
+<h2>通しプレイの結果（Chrome で確認）</h2>
+<table><tr><th>工程</th><th>結果</th></tr>
+<tr><td>タイトル（巻頭歌 縦書き）→ はじめから</td><td class="ok">OK</td></tr>
+<tr><td>S01 巻頭歌 → S02 覚醒（5頁，ルビ・傍点）→ 証拠カード「時計の音」</td><td class="ok">OK</td></tr>
+<tr><td>S03 若林の来訪（9頁）→ 証拠カード「私は誰か」</td><td class="ok">OK</td></tr>
+<tr><td>S04 標本室（6頁）→ 入れ子の本（同じ巻頭歌・同じ第一行）→ カード「原稿内の巻頭歌」</td><td class="ok">OK</td></tr>
+<tr><td>S07 脳髄論（13頁，朱の見出し）→ 電話交換局ミニゲーム（前半5接続／後半混線）→ 解説カード3枚</td><td class="ok">OK</td></tr>
+<tr><td>理解課題5問（誰の説明か／支持証拠／反証）→ 論点版バッジ</td><td class="ok">OK</td></tr>
+<tr><td>結末：暗転＋時計音3回 → タイトル → 索引（物語版・論点版 達成，原文 24%→修正後は全頁記録，周回1）</td><td class="ok">OK</td></tr>
+<tr><td>設定：縦/横切替・文字サイズ・絵柄 A/B・音量</td><td class="ok">OK（横書きも見出し付きで動作）</td></tr></table>
+<h2>修正した不具合</h2>
+<ul><li>最終頁で見出しの下に前頁の列が透ける → flow を clip 用 view に格納</li><li>キー連打で閲覧記録が抜ける（24%）→ 可視判定を論理位置（offset）に変更</li><li>交換局ログの伸びすぎ／原稿の朱印と歌の重なり／情報源チップの二重表記</li></ul>
+<h2>画面（脳髄論・縦書き）</h2><img src="screenshots/2026-09-03_M1_brain_vertical.jpg" alt="脳髄論の場面">
+<h2>次にやること</h2>
+<ul><li class="todo">Nano Banana テスト画像3枚（<code>~/.config/dogra/gemini_api_key</code> を置いていただければ自動生成）</li><li class="todo">M1 のプレイ体験を Codex/Gemini にレビューさせ，初見者テストで「3命題を自分の言葉で説明できるか」を判定</li><li class="todo">CREDITS.md，M2（全13区分の場面スクリプト）設計</li></ul>
+<p style="font-size:12px;color:#5a4b40">記録：<code>.spec/TODO.md</code>・<code>.agent/handoff/HANDOFF.md</code>・<code>.spec/KNOWLEDGE.md</code>（コピペ用 .md は作成していません）</p>
+</body></html>

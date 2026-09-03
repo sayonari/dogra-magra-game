@@ -1,24 +1,25 @@
-# HANDOFF - 2026-09-03 12:00
+# HANDOFF - 2026-09-03 15:30
 
 ## 使用ツール
-Claude Code（Opus 5）／レビュー：Gemini CLI 0.55，Codex CLI 0.147（gpt-5.6-sol）
+Claude Code（Opus 5）／レビュー：Gemini CLI，Codex CLI（gpt-5.6-sol）／動作確認：claude-in-chrome
 
 ## 現在のタスクと進捗
-- [x] M0 立ち上げ：プロジェクト構築・青空文庫原文取得（42.3万字）・13区分＋S11 11サブ区分の構造解析・SPEC v0.1→Gemini/Codex レビュー→v0.2・計画書 HTML（`.output/2026-09-03_実装計画書.html`）
-- [ ] SPEC v1.0 確定：西村の確認事項（SPEC §10）の回答待ち
-- [ ] M1 理解検証用縦切り（TODO.md 優先度高）
+- [x] M0 立ち上げ・構造解析・SPEC v1.0
+- [x] M1 理解検証用縦切り：実装完了・Chrome で全行程確認・GitHub push・Pages 有効化（https://sayonari.github.io/dogra-magra-game/）
+- [ ] M1 残り：Nano Banana テスト画像3枚（API キー待ち）／CREDITS.md／初見者テスト（合格判定）
+- [ ] M2 着手前：Codex/Gemini に M1 のプレイ体験レビュー（`.output/2026-09-03_M1動作確認.html` と `src/data/scenario_m1.ts` を渡す）
 
 ## 試したこと・結果
-- Codex は新規フォルダだと "Not inside a trusted directory" で失敗 → `--skip-git-repo-check` で成功
-- 章見出しは青空文庫の「見出し」注記ではなく「５段階大きな文字」注記で抽出できた
-- Gemini と Codex で周回設計の推奨が対立 → Codex 案採用（理由は KNOWLEDGE.md）
+- `src/engine/reader.ts`：flow を clip 用 `.view` に入れ，可視判定を offset ベースに変更（KNOWLEDGE.md 参照）
+- 本文 JSON は遅延 glob で区分ごとチャンク化．初期ロードは S01/S02/S03/S04/S07 のみ
+- `docs/` は `GH_PAGES=1 npm run build` で生成（base `/dogra-magra-game/`）．ローカル確認は `npm run dev`
 
 ## 次のセッションで最初にやること
-1. SPEC §10 の確認事項の回答を反映して v1.0 に
-2. `analysis/aozora2json.py` を書き S01/S02/S04/S07 を JSON 化
-3. Vite+TS 骨組み＋DOM 縦書きエンジン＋時計音 Web Audio
+1. Pages の公開状態を確認（`gh api repos/sayonari/dogra-magra-game/pages --jq .status` が built なら URL を開く）
+2. `~/.config/dogra/gemini_api_key` があれば Nano Banana で room7/clock/manuscript を生成し `public/img/real/*.webp` に置換，`assets/LEDGER.csv` に記録
+3. M1 のレビュー（Codex/Gemini）→ 指摘反映 → M2（全13区分の場面スクリプト）設計へ
 
 ## 注意点・ブロッカー
-- GEMINI_API_KEY 未設定（画像生成自動化に必要）．Suno は解約済みの可能性
-- 原文 `.references/aozora/` は改変禁止．ゲーム内本文は自動変換のみ
-- 精神医学注釈は三時点分離＋公開前外部レビュー必須
+- ゲーム内引用は原文 JSON 経由のみ．`scenario_m1.ts` の要旨・注釈は注釈者の言葉として書き，作中の主張と区別している（公開前に外部レビュー）
+- 交換局ミニゲームの引用文（「股を抓ねれば股だけが痛いのですよ」等）は S07 行1063–1108 と一致確認済み．変更時は再照合
+- `confirm()` を使う「はじめから」は Chrome 自動化を止める

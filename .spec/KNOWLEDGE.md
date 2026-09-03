@@ -26,3 +26,7 @@
 - **M1 は理解検証用縦切り**（縦書きエンジンの完成度ではなく「作中の説を理解しつつ真実と断定しない状態」を短いプレイで作れるかを検証）
 - レビュー原文：`analysis/reviews/gemini_review_v0.1.md`，`analysis/reviews/codex_review_v0.1.md`
 - Codex CLI は `--skip-git-repo-check` が必要（新規フォルダは trusted でないため）．Gemini CLI は `gemini -p` で非対話実行可
+- **縦書き頁送りの実装知見（M1）**：flow を `.view`（overflow hidden，見出し幅ぶん右を空ける）に入れないと，最終頁で前頁の列が見出しの下に透ける．可視段落の判定は `getBoundingClientRect` でなく `offsetLeft/offsetTop`（transform の影響を受けない論理位置）で行う——連打時に transition 途中の位置を拾って閲覧記録が抜けるため
+- 本文 JSON は `import.meta.glob` の遅延読込で区分ごとにチャンク化（eager だと 2.9MB 単一バンドル）．S11 だけで 880KB
+- claude-in-chrome のスクリーンショットは CSS アニメーション途中を写すことがある（オーバーレイが薄く見える）→ 表示不具合と誤認しない．1秒待って再撮影
+- `confirm()` はブラウザ自動化（Chrome MCP）を止めるため，テストでは「はじめから」でなく索引から場面へ入る
