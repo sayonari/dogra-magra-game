@@ -1,5 +1,6 @@
 // セーブ／設定（localStorage）．3種の読了判定を別々に記録する．
-export interface Settings { mode: 'v'|'h'; fs: 'S'|'M'|'L'; art: 'real'|'shadow'; sound: boolean; volume: number }
+export interface Settings { mode: 'v'|'h'; fs: 'S'|'M'|'L'; art: 'real'|'shadow'; sound: boolean; volume: number; text: 'full'|'digest'; edge: boolean }
+// text: 本文の範囲．full＝区分の原文を場面ごとに隙間なく全文（既定，西村 2026-09-03「本を読ませるソフトなら全文が既定」）／digest＝要所の抜粋だけ．edge: 本の小口（全体の現在位置）を表示するか
 export interface Progress {
   reached: string[];                    // 到達した場面 id（物語版）
   read: Record<string, number[]>;       // 原文閲覧：section id → 閲覧済み行番号（原文100%）
@@ -10,7 +11,7 @@ export interface Progress {
   page?: number;                        // 最後の場面の頁（つづきから用）
 }
 const KS = 'dogra.settings.v1', KP = 'dogra.progress.v1';
-export const defaultSettings: Settings = { mode: 'v', fs: 'M', art: 'real', sound: true, volume: 0.6 };
+export const defaultSettings: Settings = { mode: 'v', fs: 'M', art: 'real', sound: true, volume: 0.6, text: 'full', edge: true };
 export function loadSettings(): Settings { try { return { ...defaultSettings, ...JSON.parse(localStorage.getItem(KS) || '{}') } } catch { return { ...defaultSettings } } }
 export function saveSettings(s: Settings) { try { localStorage.setItem(KS, JSON.stringify(s)) } catch {} }
 const empty = (): Progress => ({ reached: [], read: {}, tasks: [], cards: [], loops: 0 });

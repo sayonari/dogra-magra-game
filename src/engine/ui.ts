@@ -25,13 +25,15 @@ export function settingsPanel(s: Settings, onChange: (s: Settings) => void, onRe
     <div class="row"><label>本文の向き</label>${seg('mode', [['v', '縦書き'], ['h', '横書き']])}</div>
     <div class="row"><label>文字の大きさ</label>${seg('fs', [['S', '小'], ['M', '中'], ['L', '大']])}</div>
     <div class="row"><label>絵柄</label>${seg('art', [['real', 'A 写実（セピア）'], ['shadow', 'B 影絵']])}</div>
+    <div class="row"><label>本文の範囲</label>${seg('text', [['full', '全文（原文をすべて読む）'], ['digest', '抜粋（要所だけ）']])}<span class="small">全文が既定．抜粋は再読や時短用で，読んでも「原文100%」にはなりません</span></div>
+    <div class="row"><label>本の小口</label>${seg('edge', [['true', '見せる'], ['false', '隠す']])}<span class="small">物理的な本の厚みのように，全体のどのあたりを読んでいるかを帯で示します（数字は出しません）</span></div>
     <div class="row"><label>音</label>${seg('sound', [['true', 'あり'], ['false', 'なし']])}<input type="range" min="0" max="1" step="0.05" value="${s.volume}" id="vol"><span class="small">上限は控えめに固定．低音が苦手な方は「なし」を</span></div>
     <h3>進捗</h3><div class="row"><button class="btn sub" id="reset">記録を消して最初から</button><span class="small">証拠カード・読了記録・周回数を消します</span></div>
     <p class="small">底本：青空文庫『ドグラ・マグラ』（夢野久作，パブリックドメイン）．原文は改変していません．出典・素材の一覧は CREDITS.md を参照．</p>`);
   o.body.querySelector('.close')!.addEventListener('click', o.close);
   o.body.querySelectorAll('.seg').forEach(sg => sg.addEventListener('click', e => {
     const b = (e.target as HTMLElement).closest('button'); if (!b) return; const k = (sg as HTMLElement).dataset.k as keyof Settings; const v = b.dataset.v!;
-    (s as any)[k] = k === 'sound' ? v === 'true' : v; sg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); onChange(s);
+    (s as any)[k] = (v === 'true' || v === 'false') ? v === 'true' : v; sg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); onChange(s);
   }));
   o.body.querySelector('#vol')!.addEventListener('input', e => { s.volume = Number((e.target as HTMLInputElement).value); onChange(s); });
   o.body.querySelector('#reset')!.addEventListener('click', () => { if (confirm('記録を消して最初からにします．よろしいですか？')) { onReset(); o.close(); } });

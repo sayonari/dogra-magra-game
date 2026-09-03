@@ -1,6 +1,6 @@
 // 起動・タイトル・章／場面進行・HUD・頁送り・原文全文モード・読了判定．本文は DOM（Reader），演出は CSS．
 import './styles.css';
-import type { Para, Scene, SectionText } from './data/types';
+import type { Block, Para, Scene, SectionText } from './data/types';
 import { chapters, scenes, cards, tasks, chapterOf, sceneIndex } from './data/scenario';
 import counts from './data/text/counts.json';
 import { Reader } from './engine/reader';
@@ -19,12 +19,35 @@ let settings: Settings = loadSettings(); let progress: Progress = loadProgress()
 let cur = -1; let reader: Reader | null = null; let fullReader: Reader | null = null; let tab: 'text' | 'summary' | 'notes' = 'text'; let busy = false; let idxT: ReturnType<typeof setTimeout> | undefined;
 const TOTAL_LINES = Object.values(counts as Record<string, number>).reduce((a, b) => a + b, 0);
 
+let lastText = settings.text;
 function applySettings() {
-  document.body.dataset.mode = settings.mode; document.body.dataset.art = settings.art;
+  document.body.dataset.mode = settings.mode; document.body.dataset.art = settings.art; document.body.dataset.edge = String(settings.edge);
   document.documentElement.style.setProperty('--fs', { S: '17px', M: '20px', L: '24px' }[settings.fs]);
   setAudio(settings.sound, settings.volume); saveSettings(settings); reader?.layout(); fullReader?.layout();
+  if (settings.text !== lastText) { lastText = settings.text; if (cur >= 0) goto(cur, 0); } // 本文の範囲を切り替えたら場面を組み直す
 }
-function paras(sc: Scene): Para[] { return sc.blocks.flatMap(b => texts[b.section].paragraphs.filter(p => p.line >= b.from && p.line <= b.to)); }
+/** 場面が担当する本文の範囲．全文モードでは，区分内で前後の場面の間を隙間なく敷き詰めた連続範囲（抜粋の外側も含めて原文をすべて読む）．抜粋モードでは章データの blocks そのまま */
+function ranges(sc: Scene): Block[] {
+  if (settings.text === 'digest') return sc.blocks;
+  const i = sceneIndex(sc.id); const out: Block[] = [];
+  for (const section of [...new Set(sc.blocks.map(b => b.section))]) {
+    const mine = sc.blocks.filter(b => b.section === section); const t = texts[section];
+    let from = t.line_start, to = t.line_end;
+    for (let j = i - 1; j >= 0; j--) { const bs = scenes[j].blocks.filter(b => b.section === section); if (bs.length) { from = Math.max(...bs.map(b => b.to)) + 1; break; } if (scenes[j].blocks.every(b => b.section < section)) break; }
+    for (let j = i + 1; j < scenes.length; j++) { const bs = scenes[j].blocks.filter(b => b.section === section); if (bs.length) { to = Math.min(...bs.map(b => b.from)) - 1; break; } if (scenes[j].blocks.every(b => b.section > section)) break; }
+    // 区分冒頭の題（原文の行）まで含むときは，章データの見出し（同じ題の再掲）を出さない
+    out.push({ section, from, to, heading: from < mine[0].from ? undefined : mine[0].heading });
+  }
+  return out;
+}
+function paras(sc: Scene): Para[] { return ranges(sc).flatMap(b => texts[b.section].paragraphs.filter(p => p.line >= b.from && p.line <= b.to)); }
+/** 本の小口：全体（非空行 TOTAL_LINES）のうち，この行より前にある分の割合（0–1）．物理的な本の「ここまで読んだ厚み」に相当 */
+const SEC_ORDER = Object.keys(counts as Record<string, number>).sort();
+function bookPos(section: string, line: number): number {
+  let before = 0; for (const s of SEC_ORDER) { if (s === section) break; before += (counts as Record<string, number>)[s]; }
+  const nb = nonblank[section]; if (nb) for (const l of nb) if (l < line) before++;
+  return Math.min(1, before / Math.max(1, TOTAL_LINES));
+}
 /** 原文100%＝全区分の非空行のうち閲覧済みの割合（抜粋だけでなく「原文全文」で読んだ分も含む） */
 function readPct(): number {
   let r = 0; for (const [sec, lines] of Object.entries(progress.read)) { const n = (counts as Record<string, number>)[sec] || 0; const nb = nonblank[sec]; r += Math.min(n, nb ? lines.filter(l => nb.has(l)).length : new Set(lines).size); }
@@ -62,31 +85,33 @@ async function goto(i: number, startPage = 0) {
     <div class="stage">
       <div class="hud"><span class="scene"><small>${ch.kicker}</small>${sc.title}</span>
         <span class="chip src" title="${sc.source.note}">${kindLabel(sc.source.kind)}：${sc.source.who}　<span class="trust">${trustStars(sc.source.trust)}</span></span>${depthChip}
-        <div class="tabs"><button data-t="text" class="on">抜粋</button><button data-t="summary">要旨</button><button data-t="notes">注釈</button></div>
-        <div class="icons"><button id="b-full" title="この区分の原文を全文読む">全文</button><button id="b-peek" title="本文を隠して背景を見る（Bキー）">景</button><button id="b-codex">図鑑 ${progress.cards.length}</button><button id="b-index">索引</button><button id="b-set">設定</button><button id="b-title">題</button></div></div>
+        <div class="tabs"><button data-t="text" class="on">${settings.text === 'digest' ? '抜粋' : '本文'}</button><button data-t="summary">要旨</button><button data-t="notes">注釈</button></div>
+        <div class="icons"><button id="b-full" title="この区分の原文を最初から最後まで続けて読む">区分全文</button><button id="b-peek" title="本文を隠して背景を見る（Bキー）">景</button><button id="b-codex">図鑑 ${progress.cards.length}</button><button id="b-index">索引</button><button id="b-set">設定</button><button id="b-title">題</button></div></div>
       <div class="caption"><small>${ch.kicker}　${ch.title}</small>${sc.title}<small>${kindLabel(sc.source.kind)}：${sc.source.who}</small></div>
       <div class="paperwrap" data-depth="${sc.depth}"><div class="paper ${sc.style || ''}" id="paper"></div></div>
       <div class="pgnav"><button id="prev">← 前の頁</button><span class="pg" id="pg"></span><span class="hint" id="hint"></span><button id="next" class="next">次の頁 →</button></div>
+      <div class="edge" id="edge" title="本の小口：全体のどのあたりを読んでいるか（設定で隠せます）"><i></i><b></b></div>
     </div>`;
   // 場面導入：背景と題だけを数秒見せてから本文の紙を出す（クリック／キーで短縮）
   const stage = app.querySelector('.stage') as HTMLElement; stage.classList.add('intro');
   const endIntro = () => { stage.classList.remove('intro'); clearTimeout(introT); };
   const introT = setTimeout(endIntro, 2600); stage.addEventListener('click', endIntro, { once: true });
   const peek = app.querySelector('#b-peek') as HTMLButtonElement; peek.addEventListener('click', e => { e.stopPropagation(); endIntro(); stage.classList.toggle('peek'); peek.classList.toggle('on'); });
-  const paper = app.querySelector('#paper') as HTMLElement; const pg = app.querySelector('#pg')!; const hint = app.querySelector('#hint')!;
+  const paper = app.querySelector('#paper') as HTMLElement; const pg = app.querySelector('#pg')!; const hint = app.querySelector('#hint')!; const edge = app.querySelector('#edge') as HTMLElement;
   const prevB = app.querySelector('#prev') as HTMLButtonElement, nextB = app.querySelector('#next') as HTMLButtonElement;
   reader = new Reader(paper, { depth: sc.depth, onPage: (lines, p, total) => {
-    progress.page = p; sc.blocks.forEach(b => mark(b.section, lines.filter(l => l >= b.from && l <= b.to)));
+    progress.page = p; const rs = ranges(sc); rs.forEach(b => mark(b.section, lines.filter(l => l >= b.from && l <= b.to)));
     pg.textContent = `${p + 1} / ${total}`; prevB.disabled = p === 0;
+    if (lines.length) { const pos = bookPos(rs[0].section, Math.min(...lines)); (edge.querySelector('i') as HTMLElement).style.width = `${pos * 100}%`; (edge.querySelector('b') as HTMLElement).style.left = `${(settings.mode === 'v' ? 1 - pos : pos) * 100}%`; } // 縦書きの本は右から読み進むので，読んだ厚みを右側に積む
     // 縦書きは左へ進むので，次＝左側「←」，前＝右側「→」に置く（CSS の row-reverse と対）
     const V = settings.mode === 'v'; const nx = p >= total - 1 ? (i === scenes.length - 1 ? '結末へ' : (chapterOf(scenes[i + 1].id) !== ch ? '次の章へ' : '次の場面へ')) : '次の頁';
     nextB.textContent = V ? `← ${nx}` : `${nx} →`; prevB.textContent = V ? '前の頁 →' : '← 前の頁';
     hint.textContent = settings.mode === 'v' ? '←キー／画面左で進む' : '↓キー／Space で進む';
   } });
-  reader.set(paras(sc), sc.blocks[0].heading); if (startPage > 0) reader.goPage(startPage);
+  reader.set(paras(sc), ranges(sc)[0].heading); if (startPage > 0) reader.goPage(startPage);
   const panes: Record<string, HTMLElement> = {};
   const mk = (id: string, html: string) => { const d = document.createElement('div'); d.className = 'pane hidden'; d.innerHTML = html; paper.appendChild(d); panes[id] = d; };
-  mk('summary', `<h3>要旨（注釈者による）</h3>${sc.summary}<p class="src">抜粋の出典：${sc.blocks.map(b => `${b.section} 行${b.from}–${b.to}`).join('，')}．<button class="link" id="p-full">この区分の原文を全文読む</button></p>`);
+  mk('summary', `<h3>要旨（注釈者による）</h3>${sc.summary}<p class="src">${settings.text === 'digest' ? '抜粋の出典' : 'この場面の本文'}：${ranges(sc).map(b => `${b.section} 行${b.from}–${b.to}`).join('，')}${settings.text === 'digest' ? '' : `（要所：${sc.blocks.map(b => `行${b.from}–${b.to}`).join('，')}）`}．<button class="link" id="p-full">この区分の原文を最初から続けて読む</button></p>`);
   mk('notes', `<h3>注釈——三つの時点</h3>
     <p><span class="era">大正15年（作中）</span>${sc.notes.era1926}</p><p><span class="era">昭和10年（刊行）</span>${sc.notes.era1935}</p><p><span class="era">現代</span>${sc.notes.modern}</p>${sc.notes.roles ? `<p><span class="era">物語上の役割</span>${sc.notes.roles}</p>` : ''}
     <h4>情報源</h4><p class="who">${kindLabel(sc.source.kind)}：${sc.source.who}（信頼度 ${trustStars(sc.source.trust)}）——${sc.source.note}</p>

@@ -1,4 +1,4 @@
-# HANDOFF - 2026-09-03 21:10
+# HANDOFF - 2026-09-03 21:40
 
 ## 使用ツール
 Claude Code（Fable 5.1）＋並列サブエージェント（章再修正 13 本）＋ Codex（gpt-5.6-sol）＋ claude-in-chrome
@@ -6,6 +6,7 @@ Claude Code（Fable 5.1）＋並列サブエージェント（章再修正 13 �
 ## 現在のタスクと進捗
 - [x] **西村方針（Q1〜Q4）による再修正**：全 13 章（14 ファイル）．原文の語の復元 64 件／Gemini 単独根拠の撤回 8 件／era1935 の参考文献付き書き直し 83 件．記録は `analysis/reviews/factcheck/applied_*.md` 末尾「2026-09-03 西村方針による再修正」．commit 00ca9ec，docs/ push 済み，Drive 同期済み
 - [x] `.spec/REFERENCES.md` 新設（略号表＋史実メモ＋一般的史実 17 項目），`.spec/AUTHORING.md` に規則 3・4 と「西村方針」節
+- [x] **全文モードを既定に＋本の小口**（西村の指摘）：`src/main.ts` の `ranges()` で場面を区分内の連続範囲に敷き詰め，設定「本文の範囲」「本の小口」を追加（`save.ts`／`ui.ts`／`styles.css`）．Codex 賛成（scratchpad `codex_fulltext_a.md`，要旨は SPEC.md）
 - [x] 第 2 報 `.output/2026-09-03_ファクトチェック再修正報告.html` を open 済み
 - [ ] **西村の宿題**：REFERENCES.md の書誌・一般的史実の現物確認，S11a-7 の「本人」の読み
 - [ ] 初見者テスト，M3（人物・物品画像，BGM），M4（ミニゲーム実装）

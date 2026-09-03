@@ -230,3 +230,10 @@ q{quotes:"「" "」"}
 .choice .opt{text-align:left;background:#fffaf0;border:1px solid #a0906f;padding:10px 14px;font-size:14px;line-height:1.7}
 .choice .opt.sel{background:var(--teal);color:#fff;border-color:var(--teal)}
 .choice .opt:disabled:not(.sel){opacity:.5}
+
+/* 本の小口：頁送りバーの下の細い帯．左（読んだ厚み）が濃く，栞の位置を示す．数字は出さない */
+.edge{position:relative;height:6px;margin:2px 16px 8px;background:linear-gradient(90deg,#e9dcc2,#cbb995);border:1px solid #6b5a45;border-radius:1px;opacity:.85}
+.edge i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#4a3a2a,#7a6248);transition:width .4s}
+.edge b{position:absolute;top:-5px;width:2px;height:16px;margin-left:-1px;background:#a5271d;box-shadow:0 0 4px rgba(165,39,29,.8);transition:left .4s}
+body[data-mode="v"] .edge i{left:auto;right:0}
+body[data-edge="false"] .edge{display:none}
