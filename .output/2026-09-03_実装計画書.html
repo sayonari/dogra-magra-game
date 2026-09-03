@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ドグラ・マグラ ゲーム化 — 実装計画書 v0.2（2026-09-03）</title>
+<style>
+:root{--bg:#f4efe6;--ink:#2b2520;--sub:#6b5f55;--acc:#8b1e2d;--acc2:#2f5d62;--line:#d8cfc2;--card:#fffdf9;--warn:#fff3cd}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;line-height:1.75;font-size:15px}
+header{background:#1d1714;color:#efe6d6;padding:28px 36px;border-bottom:6px solid var(--acc)}
+header h1{margin:0 0 6px;font-size:26px;letter-spacing:.08em}header p{margin:0;color:#c9b9a5;font-size:13px}
+main{max-width:1180px;margin:0 auto;padding:24px 36px 80px}
+h2{font-size:20px;border-left:6px solid var(--acc);padding-left:12px;margin:38px 0 14px;letter-spacing:.05em}
+h3{font-size:16px;margin:22px 0 8px;color:var(--acc2)}
+table{border-collapse:collapse;width:100%;background:var(--card);font-size:13.5px;margin:10px 0}
+th,td{border:1px solid var(--line);padding:7px 10px;vertical-align:top;text-align:left}th{background:#eae1d3;font-weight:600}
+.bar{height:10px;background:linear-gradient(90deg,var(--acc),#c9605f);border-radius:3px;display:inline-block;vertical-align:middle}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:10px;background:#e7ded0;color:var(--sub);margin-right:4px}
+.nar{background:#e3ecec;color:var(--acc2)}.doc{background:#f1dede;color:var(--acc)}
+.box{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:14px 18px;margin:12px 0}
+.decide{border-left:5px solid var(--acc2)}.warn{background:var(--warn);border-color:#e8d38a}
+.ask{background:#fdeeee;border:1px solid #e6b3b3;border-left:5px solid var(--acc)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}@media(max-width:800px){.grid{grid-template-columns:1fr}}
+code{background:#eee6da;padding:1px 5px;border-radius:3px;font-size:12.5px;font-family:Menlo,monospace}
+.small{font-size:12.5px;color:var(--sub)}ul{margin:6px 0 6px 20px;padding:0}li{margin:3px 0}
+.poem{font-family:"Hiragino Mincho ProN",serif;writing-mode:vertical-rl;height:190px;margin:0 auto;font-size:18px;letter-spacing:.2em;color:#3a2b2b}
+.q{color:var(--acc);font-weight:600}
+</style></head><body>
+<header><h1>『ドグラ・マグラ』ゲーム化 — 実装計画書 v0.2（Gemini・Codex レビュー反映）</h1>
+<p>2026-09-03 ／ 作成：Claude Code（Opus 5）／ レビュー：Gemini CLI・Codex（gpt-5.6-sol）／ プロジェクト：<code>work/デモ・配信/ドグラマグラ_ゲーム化/</code></p></header>
+<main>
+
+<div class="box" style="text-align:center;padding:26px"><div class="poem">胎児よ　胎児よ　何故躍る　母親の心がわかって　おそろしいのか</div><p class="small">巻頭歌（青空文庫 No.2093 より）</p></div>
+
+<h2>0. 結論（先に3行で）</h2>
+<div class="box decide">
+<ul>
+<li><b>プラットフォーム＝ブラウザ（GitHub Pages 配布）</b>．NES/SFC は 42.3万字＋ルビ＋外字の壁で本編には非現実的．ただし<b>「本の中の本」＝作中文書を 8bit ミニゲームとして入れ子表現</b>し，西村さんの NES 経験（cc65）は将来「実機版ミニゲーム」の切り出しに活かす</li>
+<li><b>ジャンル＝再読型ノベルADV（探索＋「遊べる論文」＋証拠カード対審）</b>．「読了」を閲覧量でなく<b>説明できること</b>で定義（理解目標6領域・3段階バッジ）．主要筋と主要論文は1周で到達でき，結末の時計音のあとは「同じ記述を別の前提で再読する」再読モード</li>
+<li><b>素材：画像＝Nano Banana 2／Pro＋古写真フィルタ（現実層セピア，文書層は紙面・版画・活版，ドット絵はミニゲームのみ），音楽＝Suno（最小から，要再契約確認），SFX＝フリー素材＋Web Audio 合成（柱時計「ブウウ——ンンン」は最優先で自作）．素材は M1 で6点だけ</b></li>
+</ul></div>
+
+<h2>1. 本日やったこと（M0 立ち上げ）</h2>
+<table><tr><th style="width:28%">項目</th><th>内容</th></tr>
+<tr><td>プロジェクト構築</td><td><code>デモ・配信/ドグラマグラ_ゲーム化/</code> を make_project 標準構成で作成（.agent/.spec/.output/.references，git 初期化，Drive 同期スクリプト）．PROJECTS.md に1行追加</td></tr>
+<tr><td>原文取得</td><td>青空文庫 No.2093（ルビ付き，底本ちくま文庫『夢野久作全集9』）をダウンロード → UTF-8 化．<code>.references/aozora/</code>（改変禁止）</td></tr>
+<tr><td>構造解析</td><td>本文 <b>422,606 字</b>（ルビ・注記除去，空白除く．600字/分で約12時間分）．章見出しは「５段階大きな文字」注記＝作中文書のタイトルとして抽出 → 13区分＋S11 の11サブ区分を <code>analysis/sections.json</code> に．人物・用語頻度を <code>analysis/frequency.json</code> に</td></tr>
+<tr><td>仕様ドラフト</td><td><code>.spec/SPEC.md</code> v0.1 を執筆 → Gemini・Codex にレビュー依頼（結果は §6）</td></tr>
+</table>
+
+<h2>2. 原文の構造（解析結果）</h2>
+<p class="small">語り（<span class="tag nar">narrative</span>）と作中文書（<span class="tag doc">embedded_doc</span>）が交互に入れ子になる．境界は機械抽出＋目視確認済み（S11 サブ区分は要精読）．</p>
+<table><tr><th>ID</th><th>区分</th><th>行</th><th>字数</th><th style="width:26%">割合</th><th>内容／ゲームで学べること</th></tr>
+<tr><td>S01</td><td><span class="tag nar">語</span>巻頭歌</td><td>1–44</td><td>346</td><td><span class="bar" style="width:1%"></span> 0.1%</td><td>主題の提示</td></tr>
+<tr><td>S02</td><td><span class="tag nar">語</span>覚醒——ブウウ——ンンン</td><td>45–197</td><td>12,218</td><td><span class="bar" style="width:8%"></span> 2.9%</td><td>七号室，記憶喪失，六号室の少女の叫び</td></tr>
+<tr><td>S03</td><td><span class="tag nar">語</span>若林博士の来訪</td><td>198–454</td><td>32,498</td><td><span class="bar" style="width:22%"></span> 7.7%</td><td>法医学教授・若林との対話．解放治療場・正木の存在</td></tr>
+<tr><td>S04</td><td><span class="tag nar">語</span>標本室の見学</td><td>455–742</td><td>36,768</td><td><span class="bar" style="width:25%"></span> 8.7%</td><td>正木の遺物．行488で原稿「ドグラ・マグラ」と<b>巻頭歌が再出</b>＝入れ子の核心</td></tr>
+<tr><td>S05</td><td><span class="tag doc">文</span>キチガイ地獄外道祭文</td><td>743–888</td><td>21,573</td><td><span class="bar" style="width:15%"></span> 5.1%</td><td>面黒楼万児＝正木の阿呆陀羅経．数え唄「一〜」で精神病院批判</td></tr>
+<tr><td>S06</td><td><span class="tag doc">文</span>地球表面は狂人の一大解放治療場</td><td>889–919</td><td>3,890</td><td><span class="bar" style="width:3%"></span> 0.9%</td><td>誰もが狂人，という視点の転倒</td></tr>
+<tr><td>S07</td><td><span class="tag doc">文</span>絶対探偵小説　脳髄は物を考える処に非ず</td><td>920–1254</td><td>29,711</td><td><span class="bar" style="width:20%"></span> 7.0%</td><td>学位論文．脳髄＝電話交換局，全身の細胞が考える</td></tr>
+<tr><td>S08</td><td><span class="tag doc">文</span>胎児の夢</td><td>1255–1364</td><td>19,499</td><td><span class="bar" style="width:13%"></span> 4.6%</td><td>胎児は母胎で先祖の罪業を夢として追体験する</td></tr>
+<tr><td>S09</td><td><span class="tag doc">文</span>空前絶後の遺言書</td><td>1365–1694</td><td>56,995</td><td><span class="bar" style="width:39%"></span> 13.5%</td><td>心理遺伝論，呉家の由来，絵巻物，正木自身の半生（三人称）</td></tr>
+<tr><td>S10</td><td><span class="tag doc">文</span>心理遺伝論附録・その一　呉一郎の発作顛末</td><td>1695–2134</td><td>69,146</td><td><span class="bar" style="width:47%"></span> 16.4%</td><td>千世子殺害・モヨ子絞殺の記録，【映画】での再現実験</td></tr>
+<tr><td>S11</td><td><span class="tag nar">語</span>正木博士との対面</td><td>2135–3235</td><td>129,618</td><td><span class="bar" style="width:88%"></span> <b>30.7%</b></td><td>「読んでしまったか」．解放治療場の実験／絵巻物と呉青秀／千世子・八代子／正体論争／十月十九日の秘密／童謡「トットの眼玉」／明治四十年の手紙／「私は何者？」（11サブ区分）</td></tr>
+<tr><td>S12</td><td><span class="tag doc">文</span>新聞号外——正木博士投身自殺す</td><td>3236–3279</td><td>3,209</td><td><span class="bar" style="width:2%"></span> 0.8%</td><td>事件の外部からの見え方</td></tr>
+<tr><td>S13</td><td><span class="tag nar">語</span>結末——懐中時計とブウウン</td><td>3280–3401</td><td>7,135</td><td><span class="bar" style="width:5%"></span> 1.7%</td><td>Ｍ→Ｗの走り書き，「正木が私の父」，ブ————ン×5，「……アッ……呉青秀……」→冒頭へ</td></tr>
+</table>
+<p class="small">頻度：私 1,143／正木 477／若林 346／呉一郎 310／絵巻物 196／脳髄 345／精神病 237／記憶 207／遺伝 176／心理遺伝 133／胎児 102／夢中遊行 97／時計 53</p>
+
+<h2>3. 採用環境の決定と理由</h2>
+<table><tr><th style="width:16%">項目</th><th style="width:30%">採用</th><th>理由・却下した案</th></tr>
+<tr><td>ハード</td><td><b>ブラウザ（PC／スマホ）</b>，GitHub Pages で無料配布</td><td>・42万字＋ルビ＋第3/4水準外字を NES/SFC に載せるのは容量・フォントROM・可読性の点で非現実的<br>・ブラウザは <code>&lt;ruby&gt;</code> と <code>writing-mode:vertical-rl</code> で「青空文庫の縦書きルビ表示」が無料で手に入る<br>・「他の人に手軽に体験してもらう」＝URL 一つで遊べることが最重要</td></tr>
+<tr><td>レトロ要素</td><td>作中文書の一部を <b>8bit ミニゲーム</b>として入れ子表現（外道祭文・号外など）</td><td>「本の中の本」＝「ゲームの中のゲーム」．絵柄の落差でプレイヤーは今どの階層にいるかを直感できる（Gemini も採用推奨）．将来 cc65 で実機版を切り出す拡張余地</td></tr>
+<tr><td>描画</td><td><b>二層</b>：本文＝DOM（縦書き・ルビ・Noto Serif JP），演出＝Canvas/WebGL（PixiJS v8）</td><td>Canvas 単体で縦書きルビは困難．Phaser より軽く DOM 併用が容易</td></tr>
+<tr><td>実装言語</td><td>TypeScript + Vite，依存最小</td><td>趣味で長期保守するため単純に</td></tr>
+<tr><td>セーブ</td><td>localStorage＋JSON エクスポート</td><td>サーバ不要</td></tr>
+</table>
+
+<h2>4. ゲームデザイン（レビュー反映後）</h2>
+<h3>4.1 コア：「読了＝説明できること」と再読構造</h3>
+<div class="box decide"><b>理解目標6領域</b>（Codex 指摘で追加）：①出来事 ②人物・血縁 ③作中文書の主張（＝作中で提唱される疑似科学的仮説，事実と確定しない）④誰の説明か（若林／正木／調査書／新聞／語り手の推測）と信頼度 ⑤反証・矛盾（矛盾台帳）⑥複数解釈．<br>
+<b>到達バッジ3段階</b>：物語版完了（場面到達）／論点版完了（理解課題：証拠と反証を一つずつ選ぶ・誰の説明かを割り当てる）／原文100%（実閲覧）．原文モードを開いただけでは読了扱いにしない．</div>
+<div class="grid">
+<div class="box"><b>1周目＝主要筋と主要論文に到達可能（物語版完了，2〜3時間想定）</b><br>覚醒 → 若林 → 標本室で原稿『ドグラ・マグラ』発見（画面内の本の中で巻頭歌が再び始まる＝入れ子）→ 正木の文書群（要旨＋遊べる論文）→ 遺言書・呉一郎事件 → 正木との対面（証拠カード対審）→ 号外 → 結末 → 時計音 → タイトル．全文再読は強制しない</div>
+<div class="box"><b>再読モード（任意）</b><br>結末後に解禁．任意地点へ跳べる索引，証拠配置の比較，論文全文エリア，隠し展示．最短20〜30分で「同じ記憶・記述を別の前提で再読」できる．「世界が実際にループした」と固定しない（作中証言自体が信用できないため）</div>
+</div>
+<div class="box warn"><b>終章の設計</b>：「私は誰か」で若林説／正木説／第三の解釈を選べるが，どれを選んでも「その選択自体が正木の設計した実験の手のひらの上」というメタ的アイロニーが突きつけられ，時計の音で冒頭に戻る．呉一郎同定は強く示唆される（「正木一郎」の書込，千世子＝母，モヨ子の「一郎兄さん」）が認識過程そのものが崩壊する，という<b>二段構造</b>を保つ．「全篇＝一瞬の夢説」と「胎児の夢論」は別物として扱う．</div>
+<h3>4.2 章別の遊び方</h3>
+<table><tr><th>原文</th><th>形式</th><th>理解させること</th></tr>
+<tr><td>S02–S04 覚醒〜標本室</td><td>一人称ノベル＋ポイント＆クリック探索．展示物を調べると文書を「入手」</td><td>記憶喪失・入れ子構造・巻頭歌の再出</td></tr>
+<tr><td>S05 外道祭文</td><td><b>リズムゲーム</b>（阿呆陀羅経・チョンガレ節）．歌詞は原文．一般的な「読経風」にせず節回しを資料調査してから．仮実装は字幕＋木魚・鉦</td><td>当時の精神病院・医学への風刺</td></tr>
+<tr><td>S06 解放治療場論</td><td>短編講演＋「誰が狂人か」判定不能クイズ</td><td>正常／異常の相対性</td></tr>
+<tr><td>S07 脳髄論</td><td><b>電話交換局パズル</b>：前半＝細胞からの信号を交換手（脳髄）が中継，後半＝接続が乱れ（反射交感の破綻）夢・精神異常・複数解釈が発生．終了後「作中説／現代医学／物語上の役割」3枚を表示</td><td>脳髄＝交換局説と，全身細胞の意識→夢中遊行→心理遺伝への連結</td></tr>
+<tr><td>S08 胎児の夢</td><td><b>横スクロール「十月十日」</b>：進化の階梯を辿るが「進むほど進歩する」ゲームにしない．先祖の罪業が記憶として堆積し逃れにくくなる．血のフラッシュバック演出</td><td>胎児の夢＝系統発生反復＋罪業の追体験＝心理遺伝への橋渡し</td></tr>
+<tr><td>S09 遺言書</td><td>ノベル＋<b>絵巻物オーバーレイ照合</b>：呉青秀の絵巻物と呉一郎事件の現場を重ね合わせ，時空を超えた一致を自分の手で確認</td><td>心理遺伝論・呉家の由来</td></tr>
+<tr><td>S10 呉一郎事件</td><td>「精神科医の助手」として証言・カルテを分類・時系列再構成（当時の医学パラダイムを内側から体験）</td><td>千世子殺害（呉一郎の犯行と確定しない）・モヨ子絞殺<b>未遂</b>（仮死・後の呼び声）・再現実験</td></tr>
+<tr><td>S11 正木との対面（30.7%）</td><td>11サブ区分→<b>5プレイ単位</b>（①正木出現と日付反転 ②解放治療場と実験倫理 ③絵巻・呉家・女性たち ④私の正体とＷ／Ｍ ⑤白紙・千世子の書込・惨劇）．<b>証拠カード対審</b>：集めた「記憶の断片」を提示して正木／若林の主張の矛盾を突き合わせるディベート形式で13万字の論点を能動的に整理．常に原文モードで全文も読める</td><td>語り手の同一性，探偵小説の脱構築，患者を研究材料化する暴力</td></tr>
+<tr><td>S12 号外</td><td>活版風／8bit 新聞 UI</td><td>外部からの見え方</td></tr>
+<tr><td>S13 結末</td><td>走り書き→メタ的アイロニー→時計→タイトル回帰．再読モード解禁</td><td>円環構造・認識の崩壊</td></tr>
+</table>
+<h3>4.3 常設機能</h3>
+<ul>
+<li><b>原文モード</b>：どの場面でも対応する原文を縦書きルビで開ける．読んだ範囲が「読了ゲージ」に反映（100%＝読了証）</li>
+<li><b>階層／情報源インジケータ</b>：固定階層のパンくずではなく「今どの資料を，誰の説明で信じているか」を表示．画面周縁の「本の余白の厚み」とページ音の深さで階層を体感させる</li>
+<li><b>記憶図鑑＋命題台帳</b>：用語・人物・文書・場面に加え，命題ごとに情報源と信頼度，支持証拠と反証（矛盾台帳：正木の生死・書類の新旧・日付・語り手＝呉一郎説・父親候補・モヨ子の生死）．「作中の言葉（原文引用行）」と「現代からの注釈（出典付き）」を<b>別枠</b>で．論文間の接続図（脳髄論→全身細胞の意識→反射交感→夢中遊行→胎児の夢→心理遺伝→呉一郎実験）</li>
+<li><b>ミニゲームは開始1秒でスキップ可</b>．スキップ時は自動実演＋正木の口語3行要旨＋論理図（内容は消さない．理解を操作技量で遮断しない）</li>
+<li><b>導入ガイダンス・注釈</b>：三時点（大正15年の作中時間／昭和10年の刊行時／現代医学）を分離．差別語は初出時に短い注意→辞典に詳説→設定で反復抑制の三層．「当時は普通」で免責せず，誰が誰に使う語かを示す．患者を研究材料化する正木・若林の暴力も主題化．<b>公開前に当事者または精神医療史研究者の外部レビューを必須</b></li>
+<li><b>狂気パラメータ</b>（軽量版）：Web Audio でBGMのピッチ揺れ・低周波残響を進行に応じて変化させる</li>
+</ul>
+
+<h2>5. 素材計画と AI 割当</h2>
+<table><tr><th style="width:14%">種別</th><th style="width:30%">担当ツール</th><th>方針・代替案</th></tr>
+<tr><td>設計・実装・原文データ化・注釈執筆</td><td><b>Claude Code（Opus 5）</b></td><td>青空記法→ruby JSON 変換は自動生成のみ（手編集禁止）で原文一致を担保</td></tr>
+<tr><td>計画／コードレビュー・バグ監査</td><td><b>Codex（gpt-5.6-sol）＋ Gemini CLI</b></td><td>大きな仕様変更のたびにセカンドオピニオン．精神医学注釈は出典付きで検証→西村が最終確認</td></tr>
+<tr><td>画像（本編）</td><td><b>Nano Banana（Gemini 2.5 Flash Image）／Nano Banana Pro</b>．API で自動化可（1枚数円程度，要現行価格確認）</td><td>3段構え：<b>A</b> キャラクターシート（正面・側面・全身・色見本）付き生成で一貫性確保 → <b>B</b> CSS 古写真フィルタ（セピア・粒状・紙質感）で顔の不一致をデザインに吸収 → <b>C</b> 人物はシルエット＋象徴パーツ1色（モヨ子の赤，正木の鼻眼鏡）．いらすとやは開発用プレースホルダーに限定．<b>素材は最小から</b>（M1：七号室背景・柱時計・原稿表紙の3点，M2：1場面1基調画＋重要物品）．当初見積（背景40/差分80・人物11名×表情・物品30）は上限目安．生成台帳 <code>assets/LEDGER.csv</code> に人物ID・モデル・プロンプト・参照画像を記録．モデルは量産＝Nano Banana 2／キーアート＝Pro（着手時に公式で再確認）</td></tr>
+<tr><td>画像（作中文書層）</td><td>紙面・版画・活版＝Nano Banana／ドット絵＝pixel-art 指定 → Aseprite 手修正</td><td>作中文書は紙面・版画・活版を基本．ドット絵は明確に遊戯化したミニゲームのみ</td></tr>
+<tr><td>音楽</td><td><b>Suno</b>（最終上限12〜15曲．M1 は≤1曲，M2 で3曲で検証してから）</td><td>⚠️ 8月下旬に Suno 解約のリマインドがあった（FIT動画）．<b>再契約要否を確認</b>．生成時点の契約・DL条件を素材台帳に保存．代替：DOVA-SYNDROME・魔王魂・甘茶の音楽工房，chiptune は Furnace で自作</td></tr>
+<tr><td>効果音</td><td>効果音ラボ・freesound（CC0）＋ <b>Web Audio 合成</b></td><td>柱時計「ブウウ——ンンン」は作品構造を担う<b>最優先音素材</b>として専用設計（低周波ベル＋残響＋ピッチ揺れ，操作に反応して歪む）．低周波を強くしすぎず，音量制限・ミュート・点滅/振動無効化を必須</td></tr>
+<tr><td>音声（任意）</td><td>VOICEVOX／Style-Bert-VITS2</td><td>外道祭文．西村さんの専門領域．ただし阿呆陀羅経・チョンガレの芸能性を潰さないよう節回しの資料調査を先行</td></tr>
+<tr><td>ライセンス</td><td>CREDITS.md に集約</td><td>青空文庫：出典・底本明記．Suno：有料プランで商用可（無料配布でも規約確認）</td></tr>
+</table>
+
+<h2>6. AI レビュー結果と採否</h2>
+<h3>6.1 Gemini CLI（完了）— 主要指摘と判断</h3>
+<table><tr><th style="width:44%">指摘</th><th>採否・対応</th></tr>
+<tr><td>致命1：42万字・S11 13万字を縦書きノベルで周回必須に読ませると確実に脱落</td><td><b>採用</b>：1周目30分の高速ループ／S11 は証拠カード対審に再構成／原文は「原文モード」で任意に</td></tr>
+<tr><td>致命2：Outer Wilds 型「正解ゲート」は原作の"答えのなさ"と乖離</td><td><b>採用</b>：ゲートは「体験した」ことで開く．終章はメタ的アイロニー</td></tr>
+<tr><td>致命3：写実本編×ドット絵ミニゲームの不統一（読書没入の分断）</td><td><b>一部採用</b>：二層絵柄は入れ子表現として採用（Gemini 自身も (3)-1 で推奨），ミニゲームは即スキップ＋3行要旨で分断を吸収</td></tr>
+<tr><td>致命4：写実絵画調で12名の一貫性を保つのは困難．唐代絵巻は破綻リスク大</td><td><b>採用</b>：3段構え（参照シート→古写真フィルタ→シルエット）．絵巻物は「古びた絹本＋墨」の抽象度を上げる</td></tr>
+<tr><td>不足：入れ子の階層を無意識に伝える UI，絵巻物と事件の重ね合わせ，医師の立場での能動的分類</td><td><b>採用</b>：§4.3 階層インジケータ／S09 オーバーレイ照合／S10 助手モード</td></tr>
+<tr><td>胎児の夢をコミカルな進化にすると思想が伝わらない</td><td><b>採用</b>：罪業フラッシュバックを必須演出に</td></tr>
+<tr><td>M1 は「覚醒→標本室で原稿発見」の垂直スライス（縦書きエンジン・時計音 Web Audio・入れ子演出）</td><td><b>採用</b>：M1 の定義を差し替え</td></tr>
+<tr><td>画像 API は「Imagen 3」</td><td><b>不採用</b>：Nano Banana＝Gemini 画像モデル系を使う（Gemini の情報がやや古い）</td></tr>
+</table>
+<h3>6.2 Codex（gpt-5.6-sol，完了）— 主要指摘と判断</h3>
+<table><tr><th style="width:44%">指摘</th><th>採否・対応</th></tr>
+<tr><td>最大の課題：「何を理解できれば読了相当か」が未定義．読了率・図鑑完成は閲覧量の指標にすぎない</td><td><b>採用</b>：理解目標6領域（出来事／人物・血縁／文書の主張／誰の説明か／反証・矛盾／複数解釈）と，3段階バッジ（物語版完了・論点版完了・原文100%）を SPEC §0.5 に追加</td></tr>
+<tr><td>「世界が実際にループした」と固定しすぎ．作中証言自体が信用できない</td><td><b>採用</b>：「同じ記憶・記述を別の前提で再読する」機構（再読モード）に言い換え</td></tr>
+<tr><td>1周目が要旨だけなのに「遊び終えたら読了」は宣言と実態が食い違う．主要筋・主要論文は1周で到達可能に，2周目は任意の再読モードに</td><td><b>採用（Gemini の30分強制ループ案と対立→Codex 案を主に）</b>．Gemini の「原稿発見で巻頭歌が本の中で再び始まる」入れ子演出は S04 で自然に実現</td></tr>
+<tr><td>脳髄論は「中継するだけ」で終わらない．全身細胞の意識→反射交感の破綻→夢・精神異常→心理遺伝へ連結する体系</td><td><b>採用</b>：交換局パズルを前半（中継）／後半（接続の乱れ→複数解釈）の二部構成に．終了後「作中説／現代医学／物語上の役割」の3枚を表示．論文間接続図を追加</td></tr>
+<tr><td>各命題に「誰の説明か」（若林／正木／調査書／新聞／語り手の推測）と信頼度を付す．矛盾台帳を「両立しない証拠」として残す</td><td><b>採用</b>：<code>claims.json</code>（命題台帳）を設計．パンくずは固定階層でなく「今どの資料を誰の説明で信じているか」に</td></tr>
+<tr><td><b>作品理解の誤り</b>：モヨ子＝六号室の少女は同一人物（素材で二重計上）／モヨ子絞殺は未遂・仮死／千世子殺害は呉一郎の犯行と確定しない／「全てが胎児の夢」は不正確（「全篇＝一瞬の夢説」と「胎児の夢論」は別）／「私＝呉一郎」「私＝別人」を対等な選択ENDにしない（同定は強く示唆されるが認識過程が信用できない二段構造）</td><td><b>全て採用・修正済み</b>．人物一覧を11名に，S10 の記述を修正，終章設計を二段構造に</td></tr>
+<tr><td>絵柄：二層案は採用だが「文書＝すべてドット絵」は避ける．現実層セピア／文書層は紙面・版画・活版／ドット絵は遊戯化部分のみ（ドット絵は現代のゲーム側が加えた翻案）</td><td><b>採用</b>：§3 を改訂</td></tr>
+<tr><td>Gemini 2.5 Flash Image はレガシー扱い．量産＝Nano Banana 2，キーアート＝Pro．キャラクターシート（正面・側面・全身・色見本）を先に確定し，生成台帳を残す</td><td><b>採用</b>：<code>assets/LEDGER.csv</code>．モデル名は着手時に公式ドキュメントで再確認</td></tr>
+<tr><td>Suno で先に12〜15曲を作らない．M1 は無音・時計音・環境音＋最大1曲，3曲で縦切り検証してから</td><td><b>採用</b></td></tr>
+<tr><td>外道祭文を一般的「読経風」にすると阿呆陀羅経・チョンガレの芸能性を潰す．資料調査を先行，仮実装は字幕＋木魚・鉦</td><td><b>採用</b></td></tr>
+<tr><td>時計音は低周波を強くしすぎない．音量制限・ミュート・点滅/振動無効化を必須に</td><td><b>採用</b>（非機能要件へ）</td></tr>
+<tr><td>注釈：三時点（大正15年作中／昭和10年刊行／現代医学）を分離．三層方式．患者を研究材料化する正木・若林の暴力も主題化．<b>当事者または精神医療史研究者の外部レビューを公開前の必須条件に</b></td><td><b>採用</b></td></tr>
+<tr><td>M1 は縦書きエンジンの完成度ではなく「短いプレイで作中の説を理解しつつ真実と断定しない状態を作れるか」を検証すべき．DOM 中心・PixiJS 不要・証拠カード3枚・ミニゲーム1つ・素材6点・初見者5名の説明能力で合格判定</td><td><b>採用</b>：M1 定義を差し替え（§7）</td></tr>
+<tr><td>素材規模が過大．まず1場面1基調画＋重要物品</td><td><b>採用</b>：当初見積は上限目安に格下げ</td></tr>
+<tr><td>SPEC と sections.json の不整合（S11「要サブ分割」vs 既に11分割）</td><td><b>採用</b>：sections.json を構造の唯一の正本に</td></tr>
+</table>
+<div class="box"><b>両レビューの共通点</b>：ブラウザ採用・二層絵柄・入れ子演出・時計音の Web Audio 専用設計・ミニゲームの即スキップ＋要旨は一致．<b>相違点</b>は周回設計（Gemini：1周目30分強制ループ／Codex：主要筋は1周で到達，再読は任意）．「手軽に体験」と「読了の宣言に嘘がない」の両立から Codex 案を採りました（§8 で確認）．</div>
+
+<h2>7. マイルストーン</h2>
+<table><tr><th>M</th><th>内容</th><th>完了条件</th></tr>
+<tr><td>M0</td><td>立ち上げ（本日）</td><td>✅ 構築・原文・解析・レビュー</td></tr>
+<tr><td>M1</td><td><b>理解検証用縦切り（20〜30分）</b>：S01 巻頭歌→S02 覚醒の抜粋→S04 原稿発見（画面内の本の中で巻頭歌が再び始まる）→S07 脳髄論の一節＋交換局ミニゲーム1つ→時計音（Web Audio）→再読．DOM 中心（縦/横切替・ルビ・文字サイズ・原文/要旨/現代注釈の三表示・既読位置保存），PixiJS は不要．証拠カード3枚（私は誰か／時計音／原稿内の巻頭歌）．読了判定3種．素材6点（七号室背景・柱時計・原稿表紙・環境音・時計音・BGM≤1）でスタイルガイド確定</td><td>初見者5名程度が「脳髄論は作者や現代医学の事実ではない」「原稿が物語を入れ子にする」「語り手の正体は示唆されるが認識過程は信用できない」を自分の言葉で説明できる</td></tr>
+<tr><td>M2</td><td>全13区分を仮絵・仮音で通しプレイ．記憶図鑑・命題台帳・原文モード・3バッジ・情報源インジケータ・再読モード．PixiJS 導入</td><td>通しで読了証まで到達可</td></tr>
+<tr><td>M3</td><td>1場面1基調画＋重要物品，BGM 3曲→拡張，SFX．素材台帳</td><td>スタイル一貫性チェック合格</td></tr>
+<tr><td>M4</td><td>ミニゲーム（外道祭文／十月十日／絵巻物照合／助手モード／証拠対審）</td><td>全て即スキップ可・自動実演＋要旨＋論理図付き</td></tr>
+<tr><td>M5</td><td>注釈ファクトチェック＋外部レビュー（当事者／精神医療史研究者），導入ガイダンス，テストプレイ，GitHub Pages 公開，Drive アーカイブ</td><td>URL 公開</td></tr>
+</table>
+
+<h2>8. 西村さんに確認したいこと</h2>
+<div class="box ask"><ol>
+<li><span class="q">絵柄の主軸</span>：A「昭和初期の写実絵画調（AI）＋古写真フィルタ」を推奨．B「最初からシルエット＋象徴色」の方がむしろ美しく破綻しない可能性もあります．どちらで進めますか（M1 は仮絵なので後でも変更可）</li>
+<li><span class="q">Suno</span>：8月下旬に解約リマインドがありました．現在契約中ですか？ 未契約なら M3 で再契約（月$10前後）か，フリー音源＋Furnace 自作で行くか</li>
+<li><span class="q">Gemini API キー</span>：画像生成を自動化するには <code>GEMINI_API_KEY</code>（AI Studio）が必要です．環境変数に未設定でした．発行してよいですか（従量課金・数百円規模）</li>
+<li><span class="q">GitHub</span>：公開時は <code>sayonari/dogra-magra-game</code>（public）で GitHub Pages を想定．リポジトリ名の希望があれば</li>
+<li><span class="q">周回設計</span>：Gemini「1周目30分の強制ループ→2周目で論文解放」と Codex「主要筋・主要論文は1周で到達，再読は任意」が対立．「遊び終えたら読了」に嘘がない Codex 案を採りました．Gemini 案の"最初の30分で一度ブウウンを浴びる"演出が好みなら，序盤の演出として折衷できます</li>
+</ol></div>
+
+<h2>9. 次のセッションで最初にやること（M1 着手）</h2>
+<ol>
+<li>SPEC を v1.0 に確定（上記確認事項の回答を反映）</li>
+<li><code>analysis/aozora2json.py</code>：青空記法→段落 JSON（ruby HTML）自動変換．S02〜S04 で検証</li>
+<li>Vite+TS+PixiJS 骨組み，DOM 縦書き本文層，時計音 Web Audio プロトタイプ</li>
+<li>S02→S04 の場面スクリプト JSON（原文行範囲・背景 ID・選択肢）と，原稿発見→巻頭歌再出→ブウウン→タイトル回帰の演出</li>
+<li>スタイルガイド <code>assets/STYLE.md</code>（プロンプト接頭辞・パレット・参照画像）と Nano Banana テスト生成 3枚</li>
+</ol>
+
+<h2>10. 関連ファイル</h2>
+<ul>
+<li>仕様：<code>.spec/SPEC.md</code>（v0.2 へ更新）／<code>.spec/PLAN.md</code>（西村さんの要望）／<code>.spec/TODO.md</code>／<code>.spec/KNOWLEDGE.md</code></li>
+<li>解析：<code>analysis/sections.json</code>・<code>analysis/frequency.json</code>・<code>analysis/text_clean.txt</code></li>
+<li>レビュー原文：<code>analysis/reviews/gemini_review_v0.1.md</code>・<code>analysis/reviews/codex_review_v0.1.md</code></li>
+<li>原文：<code>.references/aozora/dogura_magura_utf8.txt</code>（改変禁止）</li>
+<li>Drive 正本：<code>…/nishimura/work/同人活動/ドグラマグラ_ゲーム化/</code></li>
+</ul>
+</main></body></html>
