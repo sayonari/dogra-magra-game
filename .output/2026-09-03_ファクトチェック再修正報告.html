@@ -1,0 +1,45 @@
+<!doctype html><html lang="ja"><head><meta charset="utf-8"><title>ドグラ・マグラ ゲーム化：西村方針による再修正報告（2026-09-03 第2報）</title>
+<style>body{font-family:"Hiragino Sans","Noto Sans JP",sans-serif;max-width:980px;margin:2rem auto;padding:0 1.2rem;line-height:1.75;color:#222}h1{font-size:1.5rem;border-bottom:2px solid #7a2e2e;padding-bottom:.3rem}h2{font-size:1.2rem;margin-top:2rem;border-left:5px solid #7a2e2e;padding-left:.6rem}table{border-collapse:collapse;width:100%;font-size:.92rem}th,td{border:1px solid #bbb;padding:.35rem .5rem;vertical-align:top}th{background:#f3ece6}td.n{text-align:right}.box{background:#fbf7f2;border:1px solid #d8c9b8;padding:.8rem 1rem;border-radius:6px}code{background:#eee;padding:0 .3em;border-radius:3px}.ok{color:#2a6}.todo{color:#a33;font-weight:bold}</style></head><body>
+<h1>西村方針による再修正報告（2026-09-03 第2報）</h1>
+<p>第1報（<code>.output/2026-09-03_ファクトチェック反映報告.html</code>）への回答 4 点を全 13 章に反映しました．公開版は <a href="https://sayonari.github.io/dogra-magra-game/">https://sayonari.github.io/dogra-magra-game/</a>（commit 00ca9ec）．検証は全章 <code>verify_scenario.py</code> OK，<code>tsc</code> OK，カード id 重複・参照欠落なし．</p>
+
+<h2>1. 方針の落とし込み</h2>
+<table><tr><th>回答</th><th>反映先</th></tr>
+<tr><td>Q1・Q4：原文の語（「狂人」「キチガイ」「片輪」「毛唐」「野蛮人」等）は注釈・場面題・カード題・課題文でも言い換えない．現代風に印象を変えない</td><td><code>.spec/AUTHORING.md</code> 規則 3．caution は「作中で使われる語．当時の用法のまま用いる」に統一．「注釈では用いない」型の文はすべて削除</td></tr>
+<tr><td>Q2：Gemini の指摘は採らない．Codex（gpt-5.6-sol）は尊重</td><td>Gemini 単独根拠の変更を撤回（原文との一字一句の不一致・行番号の訂正は出所を問わず維持）．<code>analysis/factcheck.sh</code> は今後 codex のみ</td></tr>
+<tr><td>Q3：参考文献を指定してよい．記述は消極的にしなくてよい</td><td><code>.spec/REFERENCES.md</code> を新設（略号表＋史実メモ＋一般的史実）．era1935 を史実メモの範囲で断定的に書き直し，文末に（参考：略号）</td></tr></table>
+
+<h2>2. 章別の件数</h2>
+<table><tr><th>章</th><th>A 原文の語の復元</th><th>B Gemini 撤回</th><th>C era1935／era1926 書き直し</th><th>主な復元・備考</th></tr>
+<tr><td>S01</td><td class="n">—</td><td class="n">—</td><td class="n">1</td><td>S01-1 era1935 を刊行書誌＋仮題「狂人の解放治療」＋作者急逝で</td></tr>
+<tr><td>S02</td><td class="n">6</td><td class="n">0</td><td class="n">7</td><td>課題文「壁の向うの少女はキチガイだ」，命題「私は狂人ではない」</td></tr>
+<tr><td>S03</td><td class="n">5</td><td class="n">0</td><td class="n">6</td><td>「狂人として扱われているのか」「色情狂」</td></tr>
+<tr><td>S04</td><td class="n">7</td><td class="n">0</td><td class="n">8</td><td>「狂人虐待」「狂人救済」「全員が狂人」</td></tr>
+<tr><td>S05</td><td class="n">9</td><td class="n">0</td><td class="n">8</td><td>「精神病者」→「狂人」を要旨・役割・カード題・用語で復元</td></tr>
+<tr><td>S06</td><td class="n">9</td><td class="n">3</td><td class="n">3</td><td>章題・場面題「片輪」「狂人」復元</td></tr>
+<tr><td>S07</td><td class="n">3</td><td class="n">0</td><td class="n">6</td><td>場面題「正木キチガイ博士の講義——…」復元</td></tr>
+<tr><td>S08</td><td class="n">1</td><td class="n">0</td><td class="n">5</td><td>「野蛮人は現代では差別的」を要旨から外し caution のみに</td></tr>
+<tr><td>S09</td><td class="n">5</td><td class="n">0</td><td class="n">8</td><td>「十人の狂人」「地球は狂人の解放治療場」</td></tr>
+<tr><td>S10</td><td class="n">1</td><td class="n">0</td><td class="n">7</td><td>S10-7 era1926 復元</td></tr>
+<tr><td>S11a</td><td class="n">5</td><td class="n">4</td><td class="n">8</td><td>「窓の下の解放治療場——十人の狂人」「誰が狂人か」．Gemini 単独の「本人＝若林」解釈を撤回</td></tr>
+<tr><td>S11b</td><td class="n">6</td><td class="n">0</td><td class="n">8</td><td>「矮躯の醜男」「舞踏狂の少女」，「毛唐」の「原文引用としてのみ表示」を削除</td></tr>
+<tr><td>S12</td><td class="n">4</td><td class="n">0</td><td class="n">3</td><td>用語「狂人用鉄製の手枷足枷」復元</td></tr>
+<tr><td>S13</td><td class="n">3</td><td class="n">1</td><td class="n">5</td><td>場面題「奇怪な謎——狂少年の一語／姪の浜の大火」復元</td></tr>
+<tr><th>計</th><th class="n">64</th><th class="n">8</th><th class="n">83</th><th></th></tr></table>
+<p>各章の変更明細は <code>analysis/reviews/factcheck/applied_&lt;章&gt;.md</code> 末尾の「2026-09-03 西村方針による再修正」表にあります．Gemini の撤回が少ないのは，Gemini の指摘の大半が原文一致の訂正か Codex との重複で，単独の「解釈の追加」は S06・S11a・S13 に限られたためです．</p>
+
+<h2>3. 先生に確認していただきたい点</h2>
+<div class="box">
+<p class="todo">① REFERENCES.md の書誌の現物確認</p>
+<p><code>.spec/REFERENCES.md</code> の略号表（鶴見 1989，西原 1975，ちくま全集，杉山 1976，多田 1997，呉・樫田 1918，岡田 2002，小俣 2005，角川文庫 1976，松本 1988）は私の記憶に基づく「参照候補」です．刊行年・書名・出版社を現物で確かめてください．誤りがあれば，その略号を引いている era1935 を直します．</p>
+<p class="todo">② 「一般的史実」節（17 項目）</p>
+<p>再修正エージェントが「史実メモにない」として印を付けた事実（梅毒による進行麻痺，ヘッケルの反復説，恩賜の銀時計，第二次大本事件，福岡の市内電車，コナン・ドイルの心霊研究，治安維持法，エロ・グロ・ナンセンス，血液型親子鑑別，スタイナハ，『赤い鳥』，九相図）は，事典類で確認できる範囲として REFERENCES.md に追記し，ゲーム内の印を外しました．削除した記述の復元候補（クレペリン分類，クラフト＝エビング邦訳，『新青年』作家，ル・ボン邦訳，アインシュタイン来日）も同節に載せています．「復元してよい」とご指示があれば該当章に戻します．</p>
+<p class="todo">③ S11a-7 の「本人」</p>
+<p>正木の「本人は既に一切を自白している」（行 2796 付近）を「若林を指す」と読む注釈は Gemini 単独の指摘だったため撤回し，「「本人」が誰かは決まらない」に戻しました．先生が「若林と読むのが自然」とお考えなら復活させます（S11b では調査書類の文脈で「本人（若林）」としており，そちらは原文どおりです）．</p>
+</div>
+
+<h2>4. 記録と同期</h2>
+<ul><li>規則：<code>.spec/AUTHORING.md</code>（規則 3・4，「西村方針」節），<code>.spec/REFERENCES.md</code></li>
+<li>記録：<code>.spec/TODO.md</code>・<code>KNOWLEDGE.md</code>・<code>.agent/handoff/HANDOFF.md</code>・<code>work/PROJECTS.md</code> 更新済み．Drive（<code>…/nishimura/work/同人活動/ドグラマグラ_ゲーム化/</code>）へ同期済み</li>
+<li>次：初見者テスト → M3 素材（人物・物品画像，BGM）→ M4 ミニゲーム実装</li></ul>
+</body></html>

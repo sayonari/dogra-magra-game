@@ -1,26 +1,26 @@
-# HANDOFF - 2026-09-03 17:20
+# HANDOFF - 2026-09-03 21:10
 
 ## 使用ツール
-Claude Code（Fable 5.1）＋並列サブエージェント（章校閲 13 本）＋ Codex（gpt-5.6-sol）／Gemini CLI（ファクトチェック）＋ claude-in-chrome
+Claude Code（Fable 5.1）＋並列サブエージェント（章再修正 13 本）＋ Codex（gpt-5.6-sol）＋ claude-in-chrome
 
 ## 現在のタスクと進捗
-- [x] **章データの出典ファクトチェック反映**：全 13 章（14 ファイル）に Codex＋Gemini の指摘 235 件を反映（採用 211・一部採用 17・自主修正 7・全面不採用 1）．採否は `analysis/reviews/factcheck/applied_*.md`，レビュー原文は同フォルダの `codex_*.md`／`gemini_*.md`
-- [x] 証拠カード id 重複（S09/S11a の `ten`，S03/S11b の `mirror`）を `S11a_ten`／`S11b_mirror` に改名．S13 章題と sections.json を「時計の音とブウウン」に統一
-- [x] 全章 `verify_scenario.py` OK，`tsc` OK，`GH_PAGES=1 npm run build` → docs/ 更新・push
-- [ ] **西村確認待ち**：`.output/2026-09-03_ファクトチェック反映報告.html` の「確認したい点」（章横断 4 件＋章ごと約 30 件）
+- [x] **西村方針（Q1〜Q4）による再修正**：全 13 章（14 ファイル）．原文の語の復元 64 件／Gemini 単独根拠の撤回 8 件／era1935 の参考文献付き書き直し 83 件．記録は `analysis/reviews/factcheck/applied_*.md` 末尾「2026-09-03 西村方針による再修正」．commit 00ca9ec，docs/ push 済み，Drive 同期済み
+- [x] `.spec/REFERENCES.md` 新設（略号表＋史実メモ＋一般的史実 17 項目），`.spec/AUTHORING.md` に規則 3・4 と「西村方針」節
+- [x] 第 2 報 `.output/2026-09-03_ファクトチェック再修正報告.html` を open 済み
+- [ ] **西村の宿題**：REFERENCES.md の書誌・一般的史実の現物確認，S11a-7 の「本人」の読み
 - [ ] 初見者テスト，M3（人物・物品画像，BGM），M4（ミニゲーム実装）
 
 ## 試したこと・結果
-- Codex は usage limit で S10〜S13 が空出力 → 16:41 に自動再実行して全章取得．Gemini は S10 が「該当なし」
-- 校閲エージェントはレビューの事実誤認（S11a 弥勒像，S13 年齢差）を原文で弾いた．現代知見の指摘は断定を弱める処理で統一
-- 反映後の機械検査（scratchpad の check.mjs 方式：カード参照・answer 範囲・`<q>` 外の差別語）で残るのは用語見出し・原文章題・caution のメタ言及のみ
+- 再修正は「共通指示 `analysis/reviews/factcheck/_reedit_instructions.md`」＋章ごとエージェントで並列．Gemini 撤回は S06・S11a・S13 のみで，他章は Gemini 指摘が原文一致の訂正か Codex と重複
+- エージェントが「（史実メモ外：要確認）」印を 12 箇所ゲーム内に残した → 一般的史実を REFERENCES.md に追記して親側で印を外した
+- 全章 `verify_scenario.py` OK，`tsc` OK，check.mjs（カード重複なし・参照欠落なし）
 
 ## 次のセッションで最初にやること
-1. 報告 HTML の「確認したい点」への西村回答を受け，章横断の方針（「狂人」語，課題文の書式，era1935 の参考文献，場面題の差別語）を AUTHORING.md に追記してから各章へ反映
-2. 反映後は `python3 analysis/verify_scenario.py src/data/chapters/*.ts` と `npx tsc --noEmit -p .`，ビルド→push→`sync_to_drive.sh`
-3. 初見者テストの準備（TODO 参照）
+1. 先生の REFERENCES.md 確認結果を受けて，誤りがあれば該当 era1935 を直す．復元候補（TODO 参照）は先生の指示があれば復元
+2. 初見者テストの準備（TODO 参照）
+3. 今後の外部査読は `analysis/factcheck.sh codex <CH>` のみ（Gemini は回さない）
 
 ## 注意点・ブロッカー
-- 章題を変えたら `analysis/sections.json` の title も揃える（校閲エージェントは他ファイルを触らない）
-- 公開は `GH_PAGES=1 npm run build` → docs/ を push．Chrome 自動テストはタブ前面で，「はじめから」（confirm）は押さない
-- API キー：`~/.config/dogra/gemini_api_key`．`assets/generated/` は git/Drive 同期外
+- 注釈者の文で原文の語を言い換えない．era1935 は REFERENCES.md の範囲で書く（`.spec/AUTHORING.md` 規則 3・4）
+- 章題を変えたら `analysis/sections.json` の title も揃える．公開は `GH_PAGES=1 npm run build` → docs/ を push
+- API キー：`~/.config/dogra/gemini_api_key`（画像生成用）．`assets/generated/` は git/Drive 同期外
