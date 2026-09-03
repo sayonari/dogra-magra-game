@@ -15,7 +15,12 @@
 <h2>修正した不具合</h2>
 <ul><li>最終頁で見出しの下に前頁の列が透ける → flow を clip 用 view に格納</li><li>キー連打で閲覧記録が抜ける（24%）→ 可視判定を論理位置（offset）に変更</li><li>交換局ログの伸びすぎ／原稿の朱印と歌の重なり／情報源チップの二重表記</li></ul>
 <h2>画面（脳髄論・縦書き）</h2><img src="screenshots/2026-09-03_M1_brain_vertical.jpg" alt="脳髄論の場面">
+<h2>Nano Banana 試作（gemini-3.1-flash-image，2026-09-03 追記）</h2>
+<p>API キーを受領し3枚を生成．七号室と標本室（綴込み原稿）は背景に組込み済み，柱時計は今後の物品カット用．台帳は <code>assets/LEDGER.csv</code>，生成は <code>assets/scripts/gen_image.py</code>．</p>
+<p><img src="screenshots/gen_room7.png" alt="七号室" style="width:32%"> <img src="screenshots/gen_manuscript.png" alt="標本室の原稿" style="width:32%"> <img src="screenshots/gen_clock.png" alt="柱時計" style="width:32%"></p>
+<p>組込み後の画面（覚醒の場面）：</p><img src="screenshots/2026-09-03_M1_room7_nanobanana.jpg" alt="覚醒の場面">
+<p>気づき：算用数字「7」が出やすい（作中は「第七号室」），時計の文字盤に商標風の文字が入る．次回は漢数字指定と no brand text を追加．</p>
 <h2>次にやること</h2>
-<ul><li class="todo">Nano Banana テスト画像3枚（<code>~/.config/dogra/gemini_api_key</code> を置いていただければ自動生成）</li><li class="todo">M1 のプレイ体験を Codex/Gemini にレビューさせ，初見者テストで「3命題を自分の言葉で説明できるか」を判定</li><li class="todo">CREDITS.md，M2（全13区分の場面スクリプト）設計</li></ul>
+<ul><li class="todo">Nano Banana：残りの場面（覚醒の寝台アップ／若林の名刺／脳髄論の紙面）と，Pro モデルでの品質比較</li><li class="todo">M1 のプレイ体験を Codex/Gemini にレビューさせ，初見者テストで「3命題を自分の言葉で説明できるか」を判定</li><li class="todo">CREDITS.md，M2（全13区分の場面スクリプト）設計</li></ul>
 <p style="font-size:12px;color:#5a4b40">記録：<code>.spec/TODO.md</code>・<code>.agent/handoff/HANDOFF.md</code>・<code>.spec/KNOWLEDGE.md</code>（コピペ用 .md は作成していません）</p>
 </body></html>
