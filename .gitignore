@@ -21,3 +21,6 @@ assets/_raw/
 
 # 生成画像の原本（大容量）
 assets/generated/
+
+# 外部レビュー実行時の stderr ログ
+analysis/reviews/factcheck/*.stderr
