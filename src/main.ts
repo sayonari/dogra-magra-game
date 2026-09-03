@@ -112,13 +112,13 @@ async function runEvent(sc: Scene) {
   const ch = chapterOf(sc.id);
   if (sc.event === 'book') { await loadTexts(['S02']); await bookOverlay(poemLines(), texts.S02.paragraphs.find(p => p.line === 46)!.html!); }
   if (sc.game === 'exchange') { const o = overlay('', 'panel'); await playExchange(o.body); o.close(); }
-  else if (sc.game === 'choice') { await choicePanel(sc.gameNote); }
-  else if (sc.game) { await stubGamePanel(sc.game, sc.gameNote); }
+  else if (sc.game && sc.game !== 'choice') { await stubGamePanel(sc.game, sc.gameNote); }
   grant(sc.cards || []);
   if (sc.event === 'task' && ch.task) {
     await sleep(700); const ok = await taskPanel(ch.task.title, ch.task.qs);
     if (ok && !progress.tasks.includes(ch.task.id)) { progress.tasks.push(ch.task.id); saveProgress(progress); const done = tasks.filter(t => progress.tasks.includes(t.id)).length; toast(done === tasks.length ? '論点版 読了バッジ：獲得' : `理解課題 達成（${done}/${tasks.length}）`); await sleep(1400); }
   } else if (sc.event === 'card' || sc.cards?.length) await sleep(500);
+  if (sc.game === 'choice') await choicePanel(sc.gameNote); // 結末の選択は課題のあと（終幕の直前）
   if (cur >= scenes.length - 1) {
     stopAmbient(); await endingOverlay(); progress.loops++; progress.last = undefined; saveProgress(progress); title();
     idxT = setTimeout(openIndex, 600);
