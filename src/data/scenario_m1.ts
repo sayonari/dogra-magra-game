@@ -1,6 +1,6 @@
 // M1 理解検証用縦切り：S01 巻頭歌 → S02 覚醒（抜粋）→ S03 若林（抜粋）→ S04 標本室で原稿発見 → S07 脳髄論（抜粋）＋交換局 → 理解課題 → 時計音
 // 要旨・注釈は「作中の言葉」と「注釈者の言葉」を分け，三時点（大正15年の作中時間／昭和10年の刊行時／現代）を区別する．
-import type { Scene, Card } from './types';
+import type { Scene, Card, TaskQ } from './types';
 
 export const scenes: Scene[] = [
   {
@@ -64,7 +64,7 @@ export const scenes: Scene[] = [
       modern: '現代の神経科学では，思考・意識は主に脳の神経活動として説明される．一方で，腸神経系や身体感覚が認知に影響するという「身体化された認知」の研究もある．正木の説はそれらとは別の，文学的な仮説として読む．',
       roles: '物語上の役割：この論文は「私」の記憶喪失と，後に語られる呉一郎事件を説明する理論的な土台として置かれる．読者は理論を信じるかどうかを試される．',
     },
-    event: 'game:exchange', cards: ['ex_story', 'ex_modern', 'ex_role'],
+    event: 'game', game: 'exchange', cards: ['ex_story', 'ex_modern', 'ex_role'],
   },
 ];
 
@@ -78,7 +78,7 @@ export const cards: Card[] = [
 ];
 
 // 理解課題（論点版）：正解当てではなく「誰の説明か」の割り当てと，「支持する証拠／反証」の選択
-export interface TaskQ { id: string; stmt: string; opts: string[]; answer: number; fb: string }
+export type { TaskQ } from './types';
 export const task: { id: string; title: string; qs: TaskQ[] } = {
   id: 'm1', title: '理解課題：誰の説明か',
   qs: [

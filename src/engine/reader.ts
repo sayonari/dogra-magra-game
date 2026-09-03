@@ -3,10 +3,10 @@ import type { Para } from '../data/types';
 export interface ReaderOpts { onPage?: (visibleLines: number[], page: number, total: number) => void; depth?: number }
 
 export class Reader {
-  root: HTMLElement; view: HTMLElement; flow: HTMLElement; heading?: HTMLElement; page = 0; total = 1; private pageSize = 0; private opts: ReaderOpts; private paras: Para[] = [];
+  root: HTMLElement; view: HTMLElement; flow: HTMLElement; heading?: HTMLElement; page = 0; total = 1; private pageSize = 0; private opts: ReaderOpts; private paras: Para[] = []; private ro: ResizeObserver;
   constructor(root: HTMLElement, opts: ReaderOpts = {}) {
     this.root = root; this.opts = opts; this.view = document.createElement('div'); this.view.className = 'view'; this.flow = document.createElement('div'); this.flow.className = 'flow'; this.view.appendChild(this.flow); root.appendChild(this.view);
-    new ResizeObserver(() => this.layout()).observe(root);
+    this.ro = new ResizeObserver(() => this.layout()); this.ro.observe(root);
   }
   set(paras: Para[], heading?: string[]) {
     this.paras = paras; this.flow.innerHTML = ''; this.heading?.remove(); this.heading = undefined;
@@ -40,7 +40,7 @@ export class Reader {
     // 縦書き：flow の右端を root の右端に揃え，頁数×頁幅だけ右へずらして左の列を見せる
     this.flow.style.transform = this.vertical() ? `translateX(${this.page * this.pageSize}px)` : `translateY(${-this.page * this.pageSize}px)`;
     this.root.classList.add('paged');
-    requestAnimationFrame(() => this.report());
+    this.report(); // 同期で報告（背景タブでは rAF が止まり閲覧記録が漏れるため）
   }
   private report() {
     const vis: number[] = []; const ps = this.pageSize;
@@ -53,4 +53,8 @@ export class Reader {
   next(): boolean { if (this.page >= this.total - 1) return false; this.page++; this.apply(); return true }
   prev(): boolean { if (this.page <= 0) return false; this.page--; this.apply(); return true }
   atEnd() { return this.page >= this.total - 1 }
+  /** 場面変更・全文モード終了時に呼ぶ（ResizeObserver を切る）*/
+  destroy() { this.ro.disconnect(); }
+  /** 途中の頁から再開（レイアウト後に呼ぶ）*/
+  goPage(p: number) { this.page = Math.max(0, Math.min(p, this.total - 1)); this.apply(); }
 }

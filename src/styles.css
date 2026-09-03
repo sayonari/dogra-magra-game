@@ -181,3 +181,52 @@ body[data-mode=v] .pgnav{flex-direction:row-reverse}
   .exchange{grid-template-columns:1fr;min-height:0}
   .book{flex-direction:column;height:80vh}.book .pg .v{font-size:16px}
 }
+
+/* ---------- M2：章・入れ子の厚み・紙面の種類・原文全文・図鑑・結末の選択 ---------- */
+.hud .scene small{display:block;font-size:10px;color:#b5a58c;letter-spacing:.2em;line-height:1}
+.chip.depth{border-color:#7a5c8e;color:#d9c8ea}
+.caption small:first-child{margin-bottom:10px;margin-top:0}
+.paperwrap[data-depth="1"] .paper{box-shadow:0 20px 60px rgba(0,0,0,.7),inset 0 0 80px rgba(120,90,50,.25),7px 7px 0 -1px rgba(203,188,156,.85),14px 14px 0 -2px rgba(150,135,105,.7)}
+.paperwrap[data-depth="2"] .paper{box-shadow:0 20px 60px rgba(0,0,0,.7),inset 0 0 80px rgba(120,90,50,.25),7px 7px 0 -1px rgba(203,188,156,.85),14px 14px 0 -2px rgba(150,135,105,.7),21px 21px 0 -3px rgba(110,95,70,.6)}
+.paper.newspaper{background:rgba(228,220,200,.93);border:3px double #6b5a45;font-family:"Noto Serif JP","Hiragino Mincho ProN",serif}
+.paper.newspaper .heading{color:var(--ink);border:2px solid var(--ink);padding:.2em .3em}
+.paper.letter{background:rgba(246,239,222,.9);border-color:#b08d5a;background-image:repeating-linear-gradient(90deg,transparent 0 calc(var(--lh) * var(--fs) - 1px),rgba(120,90,50,.12) 0 calc(var(--lh) * var(--fs)))}
+body[data-mode="h"] .paper.letter{background-image:repeating-linear-gradient(0deg,transparent 0 calc(var(--lh) * var(--fs) - 1px),rgba(120,90,50,.12) 0 calc(var(--lh) * var(--fs)))}
+.paper.scroll{background:rgba(222,206,170,.93);border-top:6px solid #5a3b22;border-bottom:6px solid #5a3b22;border-left:none;border-right:none}
+.paper .pane .link{background:transparent;border:none;color:var(--teal);text-decoration:underline;font-size:12px;padding:0;margin-left:6px}
+/* 原文全文 */
+.fullwrap{display:flex;flex-direction:column;gap:8px;align-items:center;width:min(96vw,1200px)}
+.fullhead{color:#e8dcc4;display:flex;gap:14px;align-items:center;font-size:13px;width:100%;justify-content:space-between;letter-spacing:.1em}
+.fullhead .pg{color:#c9b995}
+.paper.full{height:min(74vh,820px);width:100%}
+.fullwrap .pgnav{width:100%;padding:0 4px}
+/* 記憶図鑑 */
+.codex{width:min(94vw,1000px)}
+.tabs2{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs2 button{background:#fff8;border:1px solid #a0906f;color:var(--ink);padding:5px 14px;font-size:13px;letter-spacing:.1em}
+.tabs2 button.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.terms{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.term{background:#fffaf0;border:1px solid #c9b995;padding:10px 12px;font-size:13px;line-height:1.7}
+.term h4{margin:0 0 4px;font-size:14px;color:var(--red)}
+.term h4 small{font-weight:400;color:var(--ink2);font-size:12px}
+.term .tk{display:inline-block;background:var(--gold);color:#fff;font-size:10px;padding:0 6px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.term .quote{border-left:3px solid var(--gold);padding-left:8px;color:#3c3028;margin:4px 0}
+.term .modern{margin-top:4px}.term .era{display:inline-block;font-size:10px;padding:0 6px;border-radius:8px;background:#d9cbb0;color:#5a4b40;margin-right:6px}
+.term .warn{background:#f3e3c5;border:1px solid #d3b97f;padding:4px 8px;font-size:12px;margin-top:4px}
+.term .src{font-size:11px;color:var(--ink2);margin-top:4px}
+.tablewrap{overflow:auto}
+table.claims{border-collapse:collapse;width:100%;font-size:12.5px;line-height:1.6}
+table.claims th,table.claims td{border:1px solid #c9b995;padding:6px 8px;vertical-align:top;text-align:left}
+table.claims th{background:#e4d8c0;font-weight:700;color:var(--ink2);white-space:nowrap}
+table.claims td.stmt{font-weight:700;min-width:12em}
+table.claims td.src{font-size:11px;color:var(--ink2);white-space:nowrap}
+.index h3{display:flex;align-items:center;gap:10px;margin:14px 0 4px}
+.index h3 .st{font-weight:400}
+.index button.full{margin-left:auto;background:transparent;border:1px solid #a0906f;color:var(--ink2);font-size:11px;padding:2px 8px}
+q{quotes:"「" "」"}
+.paper .heading q{quotes:none}
+.gamenote{padding-left:1.4em;line-height:1.9}
+.choice{display:flex;flex-direction:column;gap:8px;margin:10px 0}
+.choice .opt{text-align:left;background:#fffaf0;border:1px solid #a0906f;padding:10px 14px;font-size:14px;line-height:1.7}
+.choice .opt.sel{background:var(--teal);color:#fff;border-color:var(--teal)}
+.choice .opt:disabled:not(.sel){opacity:.5}

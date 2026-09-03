@@ -25,3 +25,9 @@ no modern objects, no text, cinematic wide shot, 16:9
 ## タイポグラフィ
 - 本文：Shippori Mincho → Noto Serif JP → Hiragino Mincho ProN．縦書き既定，行間 2.0，ルビ 0.5em
 - 見出し（作中文書の題）：朱・太字・字間 .2em．本文の列ピッチを崩さないため文字サイズは変えない
+
+## 背景の一覧（2026-09-03，M2 で追加生成）
+`assets/scripts/gen_backgrounds.sh` で corridor／ward／street／lecture／paper／scroll／newspaper／letter／night／dark の10枚を一括生成（接頭辞に `no numerals, no signage, no brand marks, no people` を追加）．結果：
+- 良好：corridor（夜の廊下）・ward（解放治療場の中庭）・street（大正の街角と提灯）・lecture（教授室）・paper（古紙の質感）・scroll（燭台と絵巻）・letter（手紙と洋燈）・night（松と月の海）
+- 要注意：newspaper は紙面に文字らしき模様が出る（判読不能なので許容）．dark は「黒に近い画面」の指定が無視され，煉瓦造りの病院外観になった→題画面の背景として採用（雰囲気は合う）．黒画面が必要なら CSS で作る
+- 場面側は `bg` id で参照し，`main.ts` が `<id>.jpg`→`<id>.svg` の順で多重背景にする

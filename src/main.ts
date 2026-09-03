@@ -1,64 +1,71 @@
-// 起動・タイトル・場面進行・HUD・頁送り・読了判定．本文は DOM（Reader），演出は CSS．
+// 起動・タイトル・章／場面進行・HUD・頁送り・原文全文モード・読了判定．本文は DOM（Reader），演出は CSS．
 import './styles.css';
-import type { Card, Para, Scene, SectionText } from './data/types';
-import { scenes, cards, task } from './data/scenario_m1';
+import type { Para, Scene, SectionText } from './data/types';
+import { chapters, scenes, cards, tasks, chapterOf, sceneIndex } from './data/scenario';
+import counts from './data/text/counts.json';
 import { Reader } from './engine/reader';
 import { loadSettings, saveSettings, loadProgress, saveProgress, resetProgress, markRead, type Settings, type Progress } from './engine/save';
 import { setAudio, unlock, startAmbient, stopAmbient, page as pageSound } from './engine/audio';
-import { overlay, toast, settingsPanel, cardsPanel, indexPanel, taskPanel, bookOverlay, endingOverlay, kindLabel, trustStars } from './engine/ui';
+import { overlay, toast, settingsPanel, codexPanel, indexPanel, taskPanel, bookOverlay, endingOverlay, stubGamePanel, choicePanel, kindLabel, trustStars } from './engine/ui';
 import { playExchange } from './games/exchange';
 
 // 本文 JSON は区分ごとに遅延読込（必要な区分だけをチャンクにする）
 const textMods = import.meta.glob('./data/text/S*.json') as Record<string, () => Promise<any>>;
-const texts: Record<string, SectionText> = {};
-async function loadTexts(ids: string[]) { await Promise.all(ids.filter(id => !texts[id]).map(async id => { const m = await textMods[`./data/text/${id}.json`](); texts[id] = (m.default || m) as SectionText; })); }
+const texts: Record<string, SectionText> = {}; const nonblank: Record<string, Set<number>> = {};
+async function loadTexts(ids: string[]) { await Promise.all(ids.filter(id => !texts[id]).map(async id => { const m = await textMods[`./data/text/${id}.json`](); texts[id] = (m.default || m) as SectionText; nonblank[id] = new Set(texts[id].paragraphs.filter(p => p.plain?.trim()).map(p => p.line)); })); }
 const BASE = import.meta.env.BASE_URL;
 const app = document.getElementById('app')!;
 let settings: Settings = loadSettings(); let progress: Progress = loadProgress();
-let cur = -1; let reader: Reader | null = null; let tab: 'text' | 'summary' | 'notes' = 'text'; let busy = false;
+let cur = -1; let reader: Reader | null = null; let fullReader: Reader | null = null; let tab: 'text' | 'summary' | 'notes' = 'text'; let busy = false; let idxT: ReturnType<typeof setTimeout> | undefined;
+const TOTAL_LINES = Object.values(counts as Record<string, number>).reduce((a, b) => a + b, 0);
 
 function applySettings() {
   document.body.dataset.mode = settings.mode; document.body.dataset.art = settings.art;
   document.documentElement.style.setProperty('--fs', { S: '17px', M: '20px', L: '24px' }[settings.fs]);
-  setAudio(settings.sound, settings.volume); saveSettings(settings); reader?.layout();
+  setAudio(settings.sound, settings.volume); saveSettings(settings); reader?.layout(); fullReader?.layout();
 }
 function paras(sc: Scene): Para[] { return sc.blocks.flatMap(b => texts[b.section].paragraphs.filter(p => p.line >= b.from && p.line <= b.to)); }
-function totalLines(): number { return scenes.reduce((n, s) => n + paras(s).filter(p => p.plain?.trim()).length, 0) }
+/** 原文100%＝全区分の非空行のうち閲覧済みの割合（抜粋だけでなく「原文全文」で読んだ分も含む） */
 function readPct(): number {
-  let r = 0; for (const s of scenes) for (const b of s.blocks) { const set = new Set(progress.read[b.section] || []); r += texts[b.section].paragraphs.filter(p => p.line >= b.from && p.line <= b.to && p.plain?.trim() && set.has(p.line)).length; }
-  return Math.min(100, r / Math.max(1, totalLines()) * 100);
+  let r = 0; for (const [sec, lines] of Object.entries(progress.read)) { const n = (counts as Record<string, number>)[sec] || 0; const nb = nonblank[sec]; r += Math.min(n, nb ? lines.filter(l => nb.has(l)).length : new Set(lines).size); }
+  return Math.min(100, r / Math.max(1, TOTAL_LINES) * 100);
 }
+function mark(section: string, lines: number[]) { markRead(progress, section, lines.filter(l => nonblank[section]?.has(l))); saveProgress(progress); }
 function poemLines(): string[] { return texts.S01.paragraphs.filter(p => p.line >= 32 && p.line <= 40 && p.plain?.trim()).map(p => p.html!) }
-function grant(ids: string[]) { const fresh = ids.filter(id => !progress.cards.includes(id)); fresh.forEach(id => progress.cards.push(id)); saveProgress(progress); if (fresh.length) { const c = cards.find(x => x.id === fresh[0])!; toast(`証拠カード：${c.title}${fresh.length > 1 ? ` ほか${fresh.length - 1}枚` : ''}`); } }
+function grant(ids: string[]) { const fresh = ids.filter(id => !progress.cards.includes(id) && cards.some(c => c.id === id)); fresh.forEach(id => progress.cards.push(id)); saveProgress(progress); if (fresh.length) { const c = cards.find(x => x.id === fresh[0])!; toast(`証拠カード：${c.title}${fresh.length > 1 ? ` ほか${fresh.length - 1}枚` : ''}`); } }
+const openIndex = () => indexPanel(chapters, progress, readPct(), id => goto(sceneIndex(id)), fullText);
+const openSettings = () => settingsPanel(settings, applySettings, () => { resetProgress(); progress = loadProgress(); title(); });
 
 // ---------- タイトル ----------
 function title() {
-  stopAmbient(); cur = -1; reader = null;
-  const canContinue = !!progress.last && scenes.some(s => s.id === progress.last);
-  app.innerHTML = `<div class="bg" style="background-image:url(${BASE}img/real/dark.svg)"></div><div class="grain"></div>
-    <div class="title"><div class="poem">${poemLines().map(l => `<div>${l}</div>`).join('')}</div><h1>ドグラ・マグラ</h1><div class="sub">遊べば読了する——理解検証版（M1）</div>
-    <div class="menu"><button id="new">はじめから</button><button id="cont" ${canContinue ? '' : 'disabled'}>つづきから</button><button id="idx" ${progress.loops > 0 || progress.reached.length ? '' : 'disabled'}>再読（索引）</button><button id="set">設定</button></div></div>
-    <div class="credit">原作：夢野久作『ドグラ・マグラ』（青空文庫・パブリックドメイン）／音・画は本作の制作物</div>`;
+  stopAmbient(); clearTimeout(idxT); cur = -1; reader?.destroy(); reader = null;
+  const canContinue = !!progress.last && sceneIndex(progress.last) >= 0;
+  app.innerHTML = `<div class="bg" style="background-image:url(${BASE}img/real/dark.jpg),url(${BASE}img/real/dark.svg)"></div><div class="grain"></div>
+    <div class="title"><div class="poem">${poemLines().map(l => `<div>${l}</div>`).join('')}</div><h1>ドグラ・マグラ</h1><div class="sub">遊べば読了する——全章通し版（M2）　全${chapters.length}章・${scenes.length}場面</div>
+    <div class="menu"><button id="new">はじめから</button><button id="cont" ${canContinue ? '' : 'disabled'}>つづきから</button><button id="idx" ${progress.reached.length ? '' : 'disabled'}>索引・再読</button><button id="codex" ${progress.reached.length ? '' : 'disabled'}>記憶図鑑</button><button id="set">設定</button></div></div>
+    <div class="credit">原作：夢野久作『ドグラ・マグラ』（青空文庫・パブリックドメイン，原文は改変していません）／音・画は本作の制作物（CREDITS.md）</div>`;
   app.querySelector('#new')!.addEventListener('click', () => { unlock(); if (progress.reached.length && !confirm('進捗（証拠カード・読了記録）は残したまま，最初の場面から読み直します．よろしいですか？')) return; goto(0); });
-  app.querySelector('#cont')!.addEventListener('click', () => { unlock(); goto(Math.max(0, scenes.findIndex(s => s.id === progress.last))); });
-  app.querySelector('#idx')!.addEventListener('click', () => indexPanel(scenes, progress, task.id, readPct(), goto));
-  app.querySelector('#set')!.addEventListener('click', () => settingsPanel(settings, applySettings, () => { resetProgress(); progress = loadProgress(); title(); }));
+  app.querySelector('#cont')!.addEventListener('click', () => { unlock(); goto(Math.max(0, sceneIndex(progress.last!)), progress.page || 0); });
+  app.querySelector('#idx')!.addEventListener('click', openIndex);
+  app.querySelector('#codex')!.addEventListener('click', () => codexPanel(chapters, progress));
+  app.querySelector('#set')!.addEventListener('click', openSettings);
 }
 
 // ---------- 読書画面 ----------
-function goto(i: number) {
-  cur = i; const sc = scenes[i]; tab = 'text';
-  if (!progress.reached.includes(sc.id)) progress.reached.push(sc.id); progress.last = sc.id; saveProgress(progress);
+async function goto(i: number, startPage = 0) {
+  const sc = scenes[i]; const ch = chapterOf(sc.id); tab = 'text'; clearTimeout(idxT);
+  await loadTexts(sc.blocks.map(b => b.section)); cur = i; reader?.destroy();
+  if (!progress.reached.includes(sc.id)) progress.reached.push(sc.id); progress.last = sc.id; progress.page = startPage; saveProgress(progress);
   startAmbient();
+  const depthChip = sc.depth ? `<span class="chip depth">作中文書（入れ子 ${sc.depth}）</span>` : '';
   app.innerHTML = `<div class="bg" style="background-image:url(${BASE}img/real/${sc.bg}.jpg),url(${BASE}img/real/${sc.bg}.svg)"></div><div class="grain"></div>
     <div class="stage">
-      <div class="hud"><span class="scene">${sc.title}</span>
-        <span class="chip src" title="${sc.source.note}">${kindLabel(sc.source.kind)}：${sc.source.who}　<span class="trust">${trustStars(sc.source.trust)}</span></span>
-        ${sc.depth ? '<span class="chip">作中文書（入れ子 1）</span>' : ''}
-        <div class="tabs"><button data-t="text" class="on">原文</button><button data-t="summary">要旨</button><button data-t="notes">注釈</button></div>
-        <div class="icons"><button id="b-peek" title="本文を隠して背景を見る（Bキー）">景</button><button id="b-cards">図鑑 ${progress.cards.length}</button><button id="b-index">索引</button><button id="b-set">設定</button><button id="b-title">題</button></div></div>
-      <div class="caption">${sc.title}<small>${kindLabel(sc.source.kind)}：${sc.source.who}</small></div>
-      <div class="paperwrap"><div class="paper" id="paper"></div></div>
+      <div class="hud"><span class="scene"><small>${ch.kicker}</small>${sc.title}</span>
+        <span class="chip src" title="${sc.source.note}">${kindLabel(sc.source.kind)}：${sc.source.who}　<span class="trust">${trustStars(sc.source.trust)}</span></span>${depthChip}
+        <div class="tabs"><button data-t="text" class="on">抜粋</button><button data-t="summary">要旨</button><button data-t="notes">注釈</button></div>
+        <div class="icons"><button id="b-full" title="この区分の原文を全文読む">全文</button><button id="b-peek" title="本文を隠して背景を見る（Bキー）">景</button><button id="b-codex">図鑑 ${progress.cards.length}</button><button id="b-index">索引</button><button id="b-set">設定</button><button id="b-title">題</button></div></div>
+      <div class="caption"><small>${ch.kicker}　${ch.title}</small>${sc.title}<small>${kindLabel(sc.source.kind)}：${sc.source.who}</small></div>
+      <div class="paperwrap" data-depth="${sc.depth}"><div class="paper ${sc.style || ''}" id="paper"></div></div>
       <div class="pgnav"><button id="prev">← 前の頁</button><span class="pg" id="pg"></span><span class="hint" id="hint"></span><button id="next" class="next">次の頁 →</button></div>
     </div>`;
   // 場面導入：背景と題だけを数秒見せてから本文の紙を出す（クリック／キーで短縮）
@@ -69,17 +76,17 @@ function goto(i: number) {
   const paper = app.querySelector('#paper') as HTMLElement; const pg = app.querySelector('#pg')!; const hint = app.querySelector('#hint')!;
   const prevB = app.querySelector('#prev') as HTMLButtonElement, nextB = app.querySelector('#next') as HTMLButtonElement;
   reader = new Reader(paper, { depth: sc.depth, onPage: (lines, p, total) => {
-    sc.blocks.forEach(b => markRead(progress, b.section, lines.filter(l => l >= b.from && l <= b.to))); saveProgress(progress);
+    progress.page = p; sc.blocks.forEach(b => mark(b.section, lines.filter(l => l >= b.from && l <= b.to)));
     pg.textContent = `${p + 1} / ${total}`; prevB.disabled = p === 0;
     // 縦書きは左へ進むので，次＝左側「←」，前＝右側「→」に置く（CSS の row-reverse と対）
-    const V = settings.mode === 'v'; const nx = p >= total - 1 ? (i === scenes.length - 1 ? '結末へ' : '次の場面へ') : '次の頁';
+    const V = settings.mode === 'v'; const nx = p >= total - 1 ? (i === scenes.length - 1 ? '結末へ' : (chapterOf(scenes[i + 1].id) !== ch ? '次の章へ' : '次の場面へ')) : '次の頁';
     nextB.textContent = V ? `← ${nx}` : `${nx} →`; prevB.textContent = V ? '前の頁 →' : '← 前の頁';
     hint.textContent = settings.mode === 'v' ? '←キー／画面左で進む' : '↓キー／Space で進む';
   } });
-  reader.set(paras(sc), sc.blocks[0].heading);
+  reader.set(paras(sc), sc.blocks[0].heading); if (startPage > 0) reader.goPage(startPage);
   const panes: Record<string, HTMLElement> = {};
   const mk = (id: string, html: string) => { const d = document.createElement('div'); d.className = 'pane hidden'; d.innerHTML = html; paper.appendChild(d); panes[id] = d; };
-  mk('summary', `<h3>要旨（注釈者による）</h3>${sc.summary}<p class="src">出典：${sc.blocks.map(b => `${b.section} 行${b.from}–${b.to}`).join('，')}</p>`);
+  mk('summary', `<h3>要旨（注釈者による）</h3>${sc.summary}<p class="src">抜粋の出典：${sc.blocks.map(b => `${b.section} 行${b.from}–${b.to}`).join('，')}．<button class="link" id="p-full">この区分の原文を全文読む</button></p>`);
   mk('notes', `<h3>注釈——三つの時点</h3>
     <p><span class="era">大正15年（作中）</span>${sc.notes.era1926}</p><p><span class="era">昭和10年（刊行）</span>${sc.notes.era1935}</p><p><span class="era">現代</span>${sc.notes.modern}</p>${sc.notes.roles ? `<p><span class="era">物語上の役割</span>${sc.notes.roles}</p>` : ''}
     <h4>情報源</h4><p class="who">${kindLabel(sc.source.kind)}：${sc.source.who}（信頼度 ${trustStars(sc.source.trust)}）——${sc.source.note}</p>
@@ -89,9 +96,11 @@ function goto(i: number) {
   prevB.addEventListener('click', () => { if (reader!.prev()) pageSound(sc.depth); });
   nextB.addEventListener('click', advance);
   paper.addEventListener('click', e => { if (tab !== 'text' || (e.target as HTMLElement).closest('.pane')) return; const r = paper.getBoundingClientRect(); const fwd = settings.mode === 'v' ? e.clientX < r.left + r.width / 2 : e.clientY > r.top + r.height / 2; fwd ? advance() : (reader!.prev() && pageSound(sc.depth)); });
-  app.querySelector('#b-cards')!.addEventListener('click', () => cardsPanel(cards, progress.cards));
-  app.querySelector('#b-index')!.addEventListener('click', () => indexPanel(scenes, progress, task.id, readPct(), goto));
-  app.querySelector('#b-set')!.addEventListener('click', () => settingsPanel(settings, applySettings, () => { resetProgress(); progress = loadProgress(); title(); }));
+  app.querySelector('#b-full')!.addEventListener('click', () => fullText(sc.blocks[0].section));
+  app.querySelector('#p-full')!.addEventListener('click', () => fullText(sc.blocks[0].section));
+  app.querySelector('#b-codex')!.addEventListener('click', () => codexPanel(chapters, progress));
+  app.querySelector('#b-index')!.addEventListener('click', openIndex);
+  app.querySelector('#b-set')!.addEventListener('click', openSettings);
   app.querySelector('#b-title')!.addEventListener('click', title);
 }
 async function advance() {
@@ -100,31 +109,49 @@ async function advance() {
   busy = true; try { await runEvent(sc); } finally { busy = false; }
 }
 async function runEvent(sc: Scene) {
-  switch (sc.event) {
-    case 'card': grant(sc.cards || []); await sleep(600); break;
-    case 'book': await bookOverlay(poemLines(), texts.S02.paragraphs.find(p => p.line === 46)!.html!); grant(sc.cards || []); await sleep(600); break;
-    case 'game:exchange': {
-      const o = overlay('', 'panel'); await playExchange(o.body); o.close(); grant(sc.cards || []);
-      await sleep(900); const ok = await taskPanel(task.title, task.qs);
-      if (ok && !progress.tasks.includes(task.id)) { progress.tasks.push(task.id); saveProgress(progress); toast('論点版 読了バッジ：獲得'); await sleep(1500); }
-      break;
-    }
-  }
+  const ch = chapterOf(sc.id);
+  if (sc.event === 'book') { await loadTexts(['S02']); await bookOverlay(poemLines(), texts.S02.paragraphs.find(p => p.line === 46)!.html!); }
+  if (sc.game === 'exchange') { const o = overlay('', 'panel'); await playExchange(o.body); o.close(); }
+  else if (sc.game === 'choice') { await choicePanel(sc.gameNote); }
+  else if (sc.game) { await stubGamePanel(sc.game, sc.gameNote); }
+  grant(sc.cards || []);
+  if (sc.event === 'task' && ch.task) {
+    await sleep(700); const ok = await taskPanel(ch.task.title, ch.task.qs);
+    if (ok && !progress.tasks.includes(ch.task.id)) { progress.tasks.push(ch.task.id); saveProgress(progress); const done = tasks.filter(t => progress.tasks.includes(t.id)).length; toast(done === tasks.length ? '論点版 読了バッジ：獲得' : `理解課題 達成（${done}/${tasks.length}）`); await sleep(1400); }
+  } else if (sc.event === 'card' || sc.cards?.length) await sleep(500);
   if (cur >= scenes.length - 1) {
     stopAmbient(); await endingOverlay(); progress.loops++; progress.last = undefined; saveProgress(progress); title();
-    setTimeout(() => indexPanel(scenes, progress, task.id, readPct(), goto), 600);
-  } else goto(cur + 1);
+    idxT = setTimeout(openIndex, 600);
+  } else await goto(cur + 1);
+}
+/** 原文全文モード：区分の原文を最初から最後まで頁送りで読む（閲覧は原文100%に反映） */
+async function fullText(section: string) {
+  busy = true; try { await loadTexts([section]) } finally { busy = false } const t = texts[section];
+  const o = overlay(`<div class="fullhead"><span>原文全文：${t.title}（行${t.line_start}–${t.line_end}）</span><span class="pg" id="fpg"></span><button class="btn sub" id="fclose" data-close>閉じる</button></div>
+    <div class="paper full" id="fpaper"></div>
+    <div class="pgnav"><button id="fprev">前の頁</button><span class="hint">紙の左半分／←キーで進む（横書きは下半分／↓）</span><button id="fnext" class="next">次の頁</button></div>`, 'fullwrap');
+  const paper = o.body.querySelector('#fpaper') as HTMLElement; const fpg = o.body.querySelector('#fpg')!;
+  const prevB = o.body.querySelector('#fprev') as HTMLButtonElement, nextB = o.body.querySelector('#fnext') as HTMLButtonElement;
+  const r = new Reader(paper, { onPage: (lines, p, total) => { mark(section, lines); fpg.textContent = `${p + 1} / ${total}　閲覧 ${(Math.min((counts as any)[section], (progress.read[section] || []).length) / (counts as any)[section] * 100).toFixed(0)}%`; prevB.disabled = p === 0; nextB.disabled = p >= total - 1; const V = settings.mode === 'v'; nextB.textContent = V ? '← 次の頁' : '次の頁 →'; prevB.textContent = V ? '前の頁 →' : '← 前の頁'; } });
+  fullReader = r; r.set(t.paragraphs);
+  const close = () => { fullReader = null; r.destroy(); o.close(); };
+  o.body.querySelector('#fclose')!.addEventListener('click', close);
+  prevB.addEventListener('click', () => { if (r.prev()) pageSound(0); }); nextB.addEventListener('click', () => { if (r.next()) pageSound(0); });
+  paper.addEventListener('click', e => { const b = paper.getBoundingClientRect(); const fwd = settings.mode === 'v' ? e.clientX < b.left + b.width / 2 : e.clientY > b.top + b.height / 2; (fwd ? r.next() : r.prev()) && pageSound(0); });
 }
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 document.addEventListener('keydown', e => {
+  const tg = e.target; if (tg instanceof Element && tg.closest('button,input,select,textarea,a,[contenteditable]')) return; // 操作要素にフォーカス中は頁送りしない
+  const v = settings.mode === 'v'; const fwd = v ? (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'ArrowDown') : (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown');
+  const back = v ? (e.key === 'ArrowRight' || e.key === 'ArrowUp') : (e.key === 'ArrowLeft' || e.key === 'ArrowUp');
+  if (fullReader) { if (fwd) { e.preventDefault(); fullReader.next() && pageSound(0); } else if (back) { e.preventDefault(); fullReader.prev() && pageSound(0); } else if (e.key === 'Escape') (document.getElementById('fclose') as HTMLButtonElement)?.click(); return; }
   if (cur < 0 || document.querySelector('.overlay,.ending')) return;
   const stage = document.querySelector('.stage'); if (stage?.classList.contains('intro')) { stage.classList.remove('intro'); return; }
   if (e.key === 'b' || e.key === 'B') { (document.getElementById('b-peek') as HTMLButtonElement)?.click(); return; }
   if (stage?.classList.contains('peek')) { (document.getElementById('b-peek') as HTMLButtonElement)?.click(); return; }
-  const v = settings.mode === 'v'; const fwd = v ? (e.key === 'ArrowLeft' || e.key === ' ' || e.key === 'ArrowDown') : (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'ArrowDown');
-  const back = v ? (e.key === 'ArrowRight' || e.key === 'ArrowUp') : (e.key === 'ArrowLeft' || e.key === 'ArrowUp');
+  if (tab !== 'text') return; // 要旨・注釈タブでは頁送りキーを無効化（意図せぬ場面終了を防ぐ）
   if (fwd) { e.preventDefault(); advance(); } else if (back) { e.preventDefault(); if (reader?.prev()) pageSound(scenes[cur].depth); }
 });
 applySettings();
-loadTexts(['S01', 'S02', ...new Set(scenes.flatMap(s => s.blocks.map(b => b.section)))]).then(title, e => { app.innerHTML = `<div class="title"><p>本文データの読込に失敗しました：${e}</p></div>`; });
+loadTexts(['S01', 'S02']).then(title, e => { app.innerHTML = `<div class="title"><p>本文データの読込に失敗しました：${e}</p></div>`; });
